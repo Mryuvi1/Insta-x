@@ -5,7 +5,9 @@ import os
 import time
 
 app = Flask(name)
-
+clients = {}        # username: Client object
+active_users = {}   # username: Thread object
+stop_events = {}    # username: Event object
 HTML_TEMPLATE = """
 
 <!DOCTYPE html><html lang='en'>
@@ -90,9 +92,5 @@ HTML_TEMPLATE = """
   </div>
 </body>
 </html>
-"""
-# clients = {}        # username: Client object
-# active_users = {}   # username: Thread object
-# stop_events = {}    # username: Event object
 """
 
