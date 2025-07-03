@@ -163,30 +163,32 @@ def instagram_bot():
         stop_events[username] = Event()
 
         def send_loop():
-            try:
-                cl = Client()
-                cl.login(username, password)
+    try:
+        cl = Client()
+        cl.login(username, password)
 
-                if username not in active_users:
-                    active_users.add(username)
+        if username not in active_users:
+            active_users.add(username)
 
-                clients[username] = cl
+        clients[username] = cl
 
-                while not stop_events[username].is_set():
-                    for msg in messages:
-                        if stop_events[username].is_set():
-                            break
-                        try:
-                            if group_thread_id:
-                                cl.direct_send(msg, thread_ids=[group_thread_id])
-                            elif target_username:
-                                user_id = cl.user_id_from_username(target_username)
-                                cl.direct_send(msg, [user_id])
-                            time.sleep(time_interval)
-                        except Exception as e:
-                            print(f"Error sending message: {e}")
-            except Exception as e:
-                print(f"Login error: {e}")
+        while not stop_events[username].is_set():
+            for msg in messages:
+                if stop_events[username].is_set():
+                    break
+                try:
+                    if group_thread_id:
+                        cl.direct_send(msg, thread_ids=[group_thread_id])
+                    elif target_username:
+                        user_id = cl.user_id_from_username(target_username)
+                        cl.direct_send(msg, [user_id])
+                    else:
+                        print("❌ No target or group ID provided.")
+                    time.sleep(time_interval)
+                except Exception as e:
+                    print(f"❌ Error sending message: {e}")
+    except Exception as e:
+        print(f"❌ Login error: {e}")
 
         t = Thread(target=send_loop)
         t.start()
