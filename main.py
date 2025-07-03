@@ -17,7 +17,13 @@ HTML_TEMPLATE = '''
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background-color: #f8f9fa;
+  background-image: url('https://i.postimg.cc/G2KrVVHh/70a96b36eac38a5cb5c9b681c00a218a.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 100vh;
+  margin: 0;
+}
     }
     .container {
       max-width: 500px;
