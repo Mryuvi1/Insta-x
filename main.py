@@ -150,7 +150,9 @@ def stop():
         stopped.append(username)
     return f"<h3>🛑 Stopped message loop for: {', '.join(stopped)}</h3><br><a href='/'>Back</a>"
 
-@app.route('/active') def active(): return "<br>".join([f"👤 {u}" for u in active_users.keys()]) or "No active users"
+@app.route('/active')
+def active():
+    return "<br>".join([f"👤 {u}" for u in active_users.keys()]) or "No active users"
 
 if name == 'main': port = int(os.environ.get("PORT", 5000)) app.run(host='0.0.0.0', port=port)
 
