@@ -110,16 +110,17 @@ HTML_TEMPLATE = """
         <label for='timeInterval'>Time Interval (seconds):</label>
         <input type='number' class='form-control' id='timeInterval' name='timeInterval' value='2' required>
       </div>
-      <form action='/stop' method='post' class='mt-3'>
+      
+      <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
+    </form>
+
+<form action='/stop' method='post' class='mt-3'>
   <div class='mb-3'>
     <label for='username'>Enter Username to Stop:</label>
     <input type='text' class='form-control' id='stopUsername' name='username' required>
   </div>
   <button type='submit' class='btn btn-danger w-100'>🛑 Stop Attack</button>
 </form>
-      <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
-    </form>
-
     <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
       Tool Developed By <b>MR YUVI</b>
     </p>
