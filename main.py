@@ -92,7 +92,7 @@ HTML_TEMPLATE = """
 </html>
 """
 clients = {}        # username: Client object
-active_users = {}   # username: thread
+active_users = {}   # username: Thread object
 stop_events = {}    # username: Event object
 """
 
