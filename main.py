@@ -64,11 +64,12 @@ HTML_TEMPLATE = """
   }
 
   .glow-text {
-    text-align: center;
-    font-size: 22px;
-    text-shadow: 0 0 10px #00ff99, 0 0 20px #00ff99, 0 0 40px #00ff99;
-    animation: flicker 1.5s infinite alternate;
-  }
+  text-align: center;
+  font-size: 22px;
+  color: #00ff99;
+  text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
+  animation: flicker 1.5s infinite alternate;
+}
 
   @keyframes flicker {
     0% { opacity: 0.85; }
