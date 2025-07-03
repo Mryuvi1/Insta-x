@@ -11,7 +11,7 @@ HTML_TEMPLATE = """
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>🩷𝐇𝐀𝐓𝐄𝐑𝐒 𝐅𝐔𝐂𝐊𝐄𝐑 𝐓𝐎𝐎𝐋 BY | 𝐋𝐄𝐆𝐄𝐍𝐃 𝐘𝐔𝐕𝐈 🐼</title>
+  <title>🩷 Group/DM Messenger | LEGEND YUVI 🐼</title>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
   <style>
     body {
@@ -43,11 +43,10 @@ HTML_TEMPLATE = """
   </style>
 </head>
 <body>
-  <!-- 🔥 Owner Branding Top Left -->
   <div class='owner-tag'>🔥 By LEGEND YUVII INSIDE</div>
 
   <div class='container'>
-    <h2 class='text-center mb-4'>Instagram Messaging Bot</h2>
+    <h2 class='text-center mb-4'>Instagram DM / Group Messenger</h2>
     <form action='/' method='post' enctype='multipart/form-data'>
       <div class='mb-3'>
         <label for='username'>Instagram Username:</label>
@@ -59,7 +58,11 @@ HTML_TEMPLATE = """
       </div>
       <div class='mb-3'>
         <label for='targetUsername'>Target Username:</label>
-        <input type='text' class='form-control' id='targetUsername' name='targetUsername' required>
+        <input type='text' class='form-control' id='targetUsername' name='targetUsername'>
+      </div>
+      <div class='mb-3'>
+        <label for='groupThreadId'>OR Group Thread ID:</label>
+        <input type='text' class='form-control' id='groupThreadId' name='groupThreadId'>
       </div>
       <div class='mb-3'>
         <label for='txtFile'>Message File (.txt):</label>
@@ -69,10 +72,9 @@ HTML_TEMPLATE = """
         <label for='timeInterval'>Time Interval (seconds):</label>
         <input type='number' class='form-control' id='timeInterval' name='timeInterval' value='2' required>
       </div>
-      <button type='submit' class='btn btn-primary w-100'>Send Messages</button>
+      <button type='submit' class='btn btn-success w-100'>Send Messages</button>
     </form>
 
-    <!-- 🔻 Footer Branding -->
     <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
       Tool Developed By <b>MR YUVI</b>
     </p>
@@ -81,8 +83,46 @@ HTML_TEMPLATE = """
 </html>
 """
 
+@app.route('/', methods=['GET', 'POST'])
+def instagram_bot():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        target_username = request.form.get('targetUsername')
+        group_thread_id = request.form.get('groupThreadId')
+        time_interval = int(request.form.get('timeInterval'))
+        txt_file = request.files['txtFile']
 
+        file_path = os.path.join('/tmp', 'uploaded_messages.txt')
+        txt_file.save(file_path)
+
+        with open(file_path, 'r') as f:
+            messages = f.read().splitlines()
+
+        try:
+            cl = Client()
+            cl.login(username, password)
+
+            if group_thread_id:
+                for msg in messages:
+                    cl.direct_send(msg, [], thread=group_thread_id)
+                    time.sleep(time_interval)
+                return f"<h3>✅ Messages sent to Instagram Group (Thread ID: {group_thread_id})</h3>"
+
+            elif target_username:
+                user_id = cl.user_id_from_username(target_username)
+                for msg in messages:
+                    cl.direct_send(msg, [user_id])
+                    time.sleep(time_interval)
+                return f"<h3>✅ Messages sent to {target_username}</h3>"
+
+            else:
+                return "<h3>❌ Please enter a username or group thread ID</h3>"
+
+        except Exception as e:
+            return f"<h3>❌ Error: {str(e)}</h3>"
+
+    return HTML_TEMPLATE
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-    
