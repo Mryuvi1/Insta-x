@@ -61,7 +61,8 @@ return HTML_TEMPLATE
 
 @app.route('/status', methods=['GET']) def status(): data = { "users": list(user_sessions.keys()), "counts": {u: user_sessions[u]["message_count"] for u in user_sessions} } return jsonify(data)
 
-🛠 PORT FIX FOR RENDER
-
-if name == 'main': port = int(os.environ.get("PORT", 5000)) app.run(host='0.0.0.0', port=port)
+# PORT FIX FOR RENDER
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
