@@ -81,35 +81,7 @@ HTML_TEMPLATE = """
 </html>
 """
 
-@app.route('/', methods=['GET', 'POST'])
-def instagram_bot():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        target_username = request.form.get('targetUsername')
-        time_interval = int(request.form.get('timeInterval'))
-        txt_file = request.files['txtFile']
 
-        file_path = os.path.join('/tmp', 'uploaded_messages.txt')
-        txt_file.save(file_path)
-
-        with open(file_path, 'r') as f:
-            messages = f.read().splitlines()
-
-        try:
-            cl = Client()
-            cl.login(username, password)
-            user_id = cl.user_id_from_username(target_username)
-
-            for msg in messages:
-                cl.direct_send(msg, [user_id])
-                time.sleep(time_interval)
-
-            return f"<h3>✅ Messages sent successfully to {target_username}</h3>"
-        except Exception as e:
-            return f"<h3>❌ Error: {str(e)}</h3>"
-
-    return HTML_TEMPLATE
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
