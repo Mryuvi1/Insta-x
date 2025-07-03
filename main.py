@@ -93,46 +93,54 @@ HTML_TEMPLATE = """
   </div>
 </body>
 </html>
-"""@app.route('/', methods=['GET', 'POST']) def home(): if request.method == 'POST': username = request.form['username'] password = request.form['password'] target = request.form['targetUsername'] group_id = request.form['groupThreadId'] interval = int(request.form['timeInterval']) txt_file = request.files['txtFile']
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        target = request.form['targetUsername']
+        group_id = request.form['groupThreadId']
+        interval = int(request.form['timeInterval'])
+        txt_file = request.files['txtFile']
 
-messages = txt_file.read().decode().splitlines()
+        messages = txt_file.read().decode().splitlines()
 
-    cl = Client()
-    try:
-        cl.login(username, password)
-    except Exception as e:
-        return f"<h3>❌ Login failed: {str(e)}</h3>"
+        # Login
+        cl = Client()
+        try:
+            cl.login(username, password)
+        except Exception as e:
+            return f"<h3>❌ Login failed: {str(e)}</h3>"
 
-    clients[username] = cl
-    stop_events[username] = Event()
+        clients[username] = cl
+        stop_events[username] = Event()
 
-    def send_loop():
-        count = 0
-        while not stop_events[username].is_set():
-            for msg in messages:
-                if stop_events[username].is_set():
-                    break
-                try:
-                    if group_id:
-                        cl.direct_send(msg, thread_ids=[group_id])
-                    elif target:
-                        user_id = cl.user_id_from_username(target)
-                        cl.direct_send(msg, [user_id])
-                    count += 1
-                    print(f"{username} sent message {count}")
-                    time.sleep(interval)
-                except Exception as e:
-                    print(f"❌ {str(e)}")
-                    continue
+        def send_loop():
+            count = 0
+            while not stop_events[username].is_set():
+                for msg in messages:
+                    if stop_events[username].is_set():
+                        break
+                    try:
+                        if group_id:
+                            cl.direct_send(msg, thread_ids=[group_id])
+                        elif target:
+                            user_id = cl.user_id_from_username(target)
+                            cl.direct_send(msg, [user_id])
+                        count += 1
+                        print(f"{username} sent message {count}")
+                        time.sleep(interval)
+                    except Exception as e:
+                        print(f"❌ {str(e)}")
+                        continue
 
-    t = Thread(target=send_loop)
-    t.start()
-    active_users[username] = t
+        t = Thread(target=send_loop)
+        t.start()
+        active_users[username] = t
 
-    return f"<h3>✅ Message loop started for <b>{username}</b>. Messages will repeat until stopped.</h3><br><a href='/'>Back</a>"
+        return f"<h3>✅ Message loop started for <b>{username}</b>. Messages will repeat until stopped.</h3><br><a href='/'>Back</a>"
 
-return HTML_TEMPLATE
-
+    return HTML_TEMPLATE
 @app.route('/stop', methods=['POST']) def stop(): stopped = [] for username, event in stop_events.items(): event.set() stopped.append(username) return f"<h3>🛑 Stopped message loop for: {', '.join(stopped)}</h3><br><a href='/'>Back</a>"
 
 @app.route('/active') def active(): return "<br>".join([f"👤 {u}" for u in active_users.keys()]) or "No active users"
