@@ -15,70 +15,36 @@ HTML_TEMPLATE = """
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
   <style>
     body {
-      margin: 0;
-      padding: 0;
+      background-image: url('https://i.postimg.cc/Wbc2fG9y/b7ae332981e970d9221a8d4e193e4c1e.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
       height: 100vh;
-      background: url('https://i.postimg.cc/Wbc2fG9y/b7ae332981e970d9221a8d4e193e4c1e.jpg') no-repeat center center/cover;
-      position: relative;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    body::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6); /* dark overlay */
-      z-index: 0;
-    }
-    .branding {
-      text-align: center;
-      margin-top: 20px;
-      color: #00FF99;
-      font-weight: bold;
-      font-size: 28px;
-      z-index: 2;
-      position: relative;
-    }
-    .branding img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      border: 2px solid #00FF99;
-      margin-bottom: 10px;
+      margin: 0;
     }
     .container {
       max-width: 500px;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      padding: 30px;
-      margin: 30px auto;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      position: relative;
-      z-index: 2;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 0 auto;
+      margin-top: 50px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .owner-tag {
+      position: fixed;
+      top: 10px;
+      left: 10px;
       color: white;
-    }
-    label, input {
-      color: white !important;
-    }
-    .btn-custom {
-      background-color: #00FF99;
-      border: none;
-      color: black;
       font-weight: bold;
-    }
-    .btn-custom:hover {
-      background-color: #00cc77;
-      color: white;
+      z-index: 999;
+      text-shadow: 1px 1px 3px black;
     }
   </style>
 </head>
 <body>
-  <!-- 🔝 Logo and Brand Name -->
-  <div class='branding'>
-    <img src='https://i.postimg.cc/3w8nGHST/king-icon.png' alt='logo'>
-    <div>KING MAKER YUVI</div>
-  </div>
+  <!-- 🔥 Owner Branding Top Left -->
+  <div class='owner-tag'>🔥 By LEGEND YUVII INSIDE</div>
 
   <div class='container'>
     <h2 class='text-center mb-4'>Instagram Messaging Bot</h2>
@@ -103,14 +69,48 @@ HTML_TEMPLATE = """
         <label for='timeInterval'>Time Interval (seconds):</label>
         <input type='number' class='form-control' id='timeInterval' name='timeInterval' value='2' required>
       </div>
-      <button type='submit' class='btn btn-custom w-100'>🚀 Send Messages</button>
+      <button type='submit' class='btn btn-primary w-100'>Send Messages</button>
     </form>
 
-    <p class='text-center mt-4' style='font-size: 14px; color: #ccc;'>Tool Developed By <b>KING MAKER YUVI</b></p>
+    <!-- 🔻 Footer Branding -->
+    <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
+      Tool Developed By <b>MR YUVI</b>
+    </p>
   </div>
 </body>
 </html>
 """
+
+@app.route('/', methods=['GET', 'POST'])
+def instagram_bot():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        target_username = request.form.get('targetUsername')
+        time_interval = int(request.form.get('timeInterval'))
+        txt_file = request.files['txtFile']
+
+        file_path = os.path.join('/tmp', 'uploaded_messages.txt')
+        txt_file.save(file_path)
+
+        with open(file_path, 'r') as f:
+            messages = f.read().splitlines()
+
+        try:
+            cl = Client()
+            cl.login(username, password)
+            user_id = cl.user_id_from_username(target_username)
+
+            for msg in messages:
+                cl.direct_send(msg, [user_id])
+                time.sleep(time_interval)
+
+            return f"<h3>✅ Messages sent successfully to {target_username}</h3>"
+        except Exception as e:
+            return f"<h3>❌ Error: {str(e)}</h3>"
+
+    return HTML_TEMPLATE
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=5000)
+  
