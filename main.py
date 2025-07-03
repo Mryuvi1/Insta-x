@@ -118,7 +118,8 @@ def instagram_bot():
 
         with open(file_path, 'r') as f:
             messages = f.read().splitlines()
-          if len(messages) > 20:
+        
+        if len(messages) > 20:
             return "<h3>❌ You can only send up to 20 messages at once.</h3>"
 
         try:
