@@ -163,12 +163,13 @@ def instagram_bot():
 
         def send_loop():
             try:
-                cl = Client()
-                cl.login(username, password)
-              if username not in active_users:
-    active_users.add(username)
-                clients[username] = cl
-        
+    cl = Client()
+    cl.login(username, password)
+
+    if username not in active_users:
+        active_users.add(username)
+
+    clients[username] = cl
 
                 while not stop_events[username].is_set():
                     for msg in messages:
