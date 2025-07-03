@@ -1,4 +1,8 @@
-from flask import Flask, request from instagrapi import Client from threading import Thread, Event import os import time
+from flask import Flask, request
+from instagrapi import Client
+from threading import Thread, Event
+import os
+import time
 
 app = Flask(name) clients = {}        # username: Client object active_users = {}   # username: Thread object stop_events = {}    # username: Event object
 
