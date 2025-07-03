@@ -1,172 +1,67 @@
-from flask import Flask, request
-from instagrapi import Client
-import os
-import time
+from flask import Flask, request, jsonify from instagrapi import Client import os import time from threading import Thread, Event
 
-app = Flask(__name__)
+app = Flask(name)
+
+Store user sessions
+
+user_sessions = {}
 
 HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-  <meta charset='UTF-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
-  <style>
-  body {
-    background-image: url('https://i.postimg.cc/CLDK8xcp/02f522c98d59a21a4b07ccd96cee09db.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    height: 100vh;
-    margin: 0;
-    font-family: 'Courier New', monospace;
-    color: #00ff99;
-  }
 
-  .container {
-    max-width: 500px;
-    background: rgba(0, 0, 0, 0.3); /* glass effect */
-    backdrop-filter: blur(10px); /* glass blur */
-    border: 1px solid #00ff99;
-    border-radius: 20px;
-    padding: 30px;
-    margin: 60px auto;
-    box-shadow: 0 0 25px #00ff99;
-  }
+<!-- (same HTML as you posted, will be enhanced in Step 2 with JS + stop button + counters) -->"""
 
-  .owner-tag {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    color: #00ff99;
-    font-weight: bold;
-    text-shadow: 0 0 10px #00ff99;
-    z-index: 999;
-  }
+def start_sending_messages(username, password, messages, user_id, thread_id=None, interval=2): stop_event = user_sessions[username]["stop_event"] count = 0 cl = Client() cl.login(username, password)
 
-  .btn-hacker {
-    background: transparent;
-    border: 2px solid #00ff99;
-    color: #00ff99;
-    font-weight: bold;
-    border-radius: 10px;
-    padding: 12px;
-    transition: 0.3s ease;
-    box-shadow: 0 0 10px #00ff99, 0 0 20px #00ff99;
-  }
+while not stop_event.is_set():
+    msg = messages[count % len(messages)]
+    try:
+        if thread_id:
+            cl.direct_send(msg, thread_ids=[thread_id])
+        else:
+            cl.direct_send(msg, [user_id])
+        count += 1
+        user_sessions[username]["message_count"] = count
+        time.sleep(interval)
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        break
 
-  .btn-hacker:hover {
-    background: #00ff99;
-    color: black;
-    box-shadow: 0 0 20px #00ff99, 0 0 40px #00ff99;
-  }
+def launch_thread(username, password, messages, user_id, thread_id, interval): stop_event = Event() user_sessions[username] = { "stop_event": stop_event, "message_count": 0, "thread": None } thread = Thread(target=start_sending_messages, args=(username, password, messages, user_id, thread_id, interval)) user_sessions[username]["thread"] = thread thread.start()
 
-  .glow-text {
-  text-align: center;
-  font-size: 22px;
-  color: #00ff99;
-  text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
-  animation: flicker 1.5s infinite alternate;
-}
+@app.route('/', methods=['GET', 'POST']) def instagram_bot(): if request.method == 'POST': username = request.form.get('username') password = request.form.get('password') target_username = request.form.get('targetUsername') group_thread_id = request.form.get('groupThreadId') time_interval = int(request.form.get('timeInterval')) txt_file = request.files['txtFile']
 
-  @keyframes flicker {
-    0% { opacity: 0.85; }
-    100% { opacity: 1; }
-  }
-</style>
-</head>
-<body>
-  <div class='owner-tag'>🔥 By LEGEND YUVII INSIDE</div>
+file_path = os.path.join('/tmp', 'uploaded_messages.txt')
+    txt_file.save(file_path)
 
-  <div class='container'>
-    <h2 class='text-center mb-4'>🔥 HATERS FUCKER TOOL BY YUVI 🐼</h2>
-    <form action='/' method='post' enctype='multipart/form-data'>
-      <div class='mb-3'>
-        <label for='username'>Instagram Username:</label>
-        <input type='text' class='form-control' id='username' name='username' required>
-      </div>
-      <div class='mb-3'>
-        <label for='password'>Instagram Password:</label>
-        <input type='password' class='form-control' id='password' name='password' required>
-      </div>
-      <div class='mb-3'>
-        <label for='targetUsername'>Target Username:</label>
-        <input type='text' class='form-control' id='targetUsername' name='targetUsername'>
-      </div>
-      <div class='mb-3'>
-        <label for='groupThreadId'>OR Group Thread ID:</label>
-        <input type='text' class='form-control' id='groupThreadId' name='groupThreadId'>
-      </div>
-      <div class='mb-3'>
-        <label for='txtFile'>Message File (.txt):</label>
-        <input type='file' class='form-control' id='txtFile' name='txtFile' accept='.txt' required>
-      </div>
-      <div class='mb-3'>
-        <label for='timeInterval'>Time Interval (seconds):</label>
-        <input type='number' class='form-control' id='timeInterval' name='timeInterval' value='2' required>
-      </div>
-      <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
-    </form>
+    with open(file_path, 'r') as f:
+        messages = f.read().splitlines()
 
-    <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
-      Tool Developed By <b>MR YUVI</b>
-    </p>
-  </div>
-</body>
-</html>
-"""
+    try:
+        cl = Client()
+        cl.login(username, password)
 
-@app.route('/', methods=['GET', 'POST'])
-def instagram_bot():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        target_username = request.form.get('targetUsername')
-        group_thread_id = request.form.get('groupThreadId')
-        time_interval = int(request.form.get('timeInterval'))
-        txt_file = request.files['txtFile']
+        if group_thread_id:
+            launch_thread(username, password, messages, None, group_thread_id, time_interval)
+            return f"<h3>✅ Group messaging started for {username}</h3>"
 
-        file_path = os.path.join('/tmp', 'uploaded_messages.txt')
-        txt_file.save(file_path)
+        elif target_username:
+            user_id = cl.user_id_from_username(target_username)
+            launch_thread(username, password, messages, user_id, None, time_interval)
+            return f"<h3>✅ DM messaging started for {username}</h3>"
 
-        with open(file_path, 'r') as f:
-            messages = f.read().splitlines()
+        else:
+            return "<h3>❌ Please enter a username or group thread ID</h3>"
 
-        try:
-            cl = Client()
-            cl.login(username, password)
+    except Exception as e:
+        return f"<h3>❌ Error: {str(e)}</h3>"
 
-            log = ""
+return HTML_TEMPLATE
 
-            if group_thread_id:
-                total = len(messages)
-                for i, msg in enumerate(messages, 1):
-                    cl.direct_send(msg, thread_ids=[group_thread_id])
-                    log += f"✅ Sent {i}/{total}<br>\n"
-                    time.sleep(time_interval)
-                log += f"<br>🎉 All messages sent to group ID: {group_thread_id}"
-                return log
+@app.route('/stop/<username>', methods=['POST']) def stop(username): if username in user_sessions: user_sessions[username]["stop_event"].set() return f"🛑 Sending stopped for {username}" return "❌ No session found"
 
-            elif target_username:
-                user_id = cl.user_id_from_username(target_username)
-                total = len(messages)
-                for i, msg in enumerate(messages, 1):
-                    cl.direct_send(msg, [user_id])
-                    log += f"✅ Sent {i}/{total}<br>\n"
-                    time.sleep(time_interval)
-                log += f"<br>🎉 All messages sent to {target_username}"
-                return log
+@app.route('/status', methods=['GET']) def status(): data = { "users": list(user_sessions.keys()), "counts": {u: user_sessions[u]["message_count"] for u in user_sessions} } return jsonify(data)
 
-            else:
-                return "<h3>❌ Please enter a username or group thread ID</h3>"
+🛠 PORT FIX FOR RENDER
 
-        except Exception as e:
-            return f"<h3>❌ Error: {str(e)}</h3>"
+if name == 'main': port = int(os.environ.get("PORT", 5000)) app.run(host='0.0.0.0', port=port)
 
-    return HTML_TEMPLATE
-
-# 🛠 PORT FIX FOR RENDER
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
