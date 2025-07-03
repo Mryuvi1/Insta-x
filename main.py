@@ -1,17 +1,10 @@
-from flask import Flask, request, render_template_string, jsonify
-from instagrapi import Client
-from threading import Thread, Event, Lock
-import os
-import time
+from flask import Flask, request from instagrapi import Client from threading import Thread, Event import os import time
 
-app = Flask(__name__)
-clients = {}        # username: Client object
-active_users = {}   # username: Thread object
-stop_events = {}    # username: Event object
+app = Flask(name) clients = {}        # username: Client object active_users = {}   # username: Thread object stop_events = {}    # username: Event object
+
 HTML_TEMPLATE = """
 
-<!DOCTYPE html><html lang='en'>
-<head>
+<!DOCTYPE html><html lang='en'><head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
@@ -74,7 +67,8 @@ HTML_TEMPLATE = """
   </style>
 </head>
 <body>
-  <div class='owner-tag'>🔥 By LEGEND YUVII INSIDE</div>  <div class='container'>
+  <div class='owner-tag'>🔥 By LEGEND YUVII INSIDE</div>
+  <div class='container'>
     <h2 class='text-center mb-4 glow-text'>🔥 HATERS FUCKER TOOL BY YUVI 🐼</h2>
     <form action='/' method='post' enctype='multipart/form-data'>
       <div class='mb-3'><label>Instagram Username:</label><input type='text' class='form-control' name='username' required></div>
@@ -92,7 +86,49 @@ HTML_TEMPLATE = """
   </div>
 </body>
 </html>
-"""
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+"""@app.route('/', methods=['GET', 'POST']) def home(): if request.method == 'POST': username = request.form['username'] password = request.form['password'] target = request.form['targetUsername'] group_id = request.form['groupThreadId'] interval = int(request.form['timeInterval']) txt_file = request.files['txtFile']
+
+messages = txt_file.read().decode().splitlines()
+
+    cl = Client()
+    try:
+        cl.login(username, password)
+    except Exception as e:
+        return f"<h3>❌ Login failed: {str(e)}</h3>"
+
+    clients[username] = cl
+    stop_events[username] = Event()
+
+    def send_loop():
+        count = 0
+        while not stop_events[username].is_set():
+            for msg in messages:
+                if stop_events[username].is_set():
+                    break
+                try:
+                    if group_id:
+                        cl.direct_send(msg, thread_ids=[group_id])
+                    elif target:
+                        user_id = cl.user_id_from_username(target)
+                        cl.direct_send(msg, [user_id])
+                    count += 1
+                    print(f"{username} sent message {count}")
+                    time.sleep(interval)
+                except Exception as e:
+                    print(f"❌ {str(e)}")
+                    continue
+
+    t = Thread(target=send_loop)
+    t.start()
+    active_users[username] = t
+
+    return f"<h3>✅ Message loop started for <b>{username}</b>. Messages will repeat until stopped.</h3><br><a href='/'>Back</a>"
+
+return HTML_TEMPLATE
+
+@app.route('/stop', methods=['POST']) def stop(): stopped = [] for username, event in stop_events.items(): event.set() stopped.append(username) return f"<h3>🛑 Stopped message loop for: {', '.join(stopped)}</h3><br><a href='/'>Back</a>"
+
+@app.route('/active') def active(): return "<br>".join([f"👤 {u}" for u in active_users.keys()]) or "No active users"
+
+if name == 'main': port = int(os.environ.get("PORT", 5000)) app.run(host='0.0.0.0', port=port)
+
