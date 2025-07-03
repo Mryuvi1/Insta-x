@@ -172,6 +172,7 @@ def instagram_bot():
 
         clients[username] = cl
 
+        # Add the actual loop or logic here
         while not stop_events[username].is_set():
             for msg in messages:
                 if stop_events[username].is_set():
@@ -181,14 +182,13 @@ def instagram_bot():
                         cl.direct_send(msg, thread_ids=[group_thread_id])
                     elif target_username:
                         user_id = cl.user_id_from_username(target_username)
-                        cl.direct_send(msg, [user_id])
-                    else:
-                        print("❌ No target or group ID provided.")
-                    time.sleep(time_interval)
+                        cl.direct_send(msg, user_ids=[user_id])
+                    time.sleep(interval)
                 except Exception as e:
-                    print(f"❌ Error sending message: {e}")
+                    print(f"Error sending message: {e}")
+
     except Exception as e:
-        print(f"❌ Login error: {e}")
+        print(f"Error in send_loop: {e}")
 
         t = Thread(target=send_loop)
         t.start()
