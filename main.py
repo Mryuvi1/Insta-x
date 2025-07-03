@@ -165,7 +165,9 @@ def instagram_bot():
             try:
                 cl = Client()
                 cl.login(username, password)
+              active_users.add(username)
                 clients[username] = cl
+        
 
                 while not stop_events[username].is_set():
                     for msg in messages:
@@ -199,9 +201,18 @@ def stop():
     username = request.form.get('username')
     if username in stop_events:
         stop_events[username].set()
+        active_users.discard(username)  # <-- ye line add karo
         return f"<h3>🛑 Stopped message loop for <b>{username}</b></h3><br><a href='/'>Back</a>"
     else:
         return "<h3>❌ No active session found for that username</h3><br><a href='/'>Back</a>"
+    else:
+
+@app.route('/active', methods=['GET'])
+def show_active_users():
+    if not active_users:
+        return "<h3>🟢 No active users currently</h3>"
+    return "<h3>🟢 Active Users:</h3><ul>" + "".join([f"<li>{user}</li>" for user in active_users]) + "</ul>"
+  
 # 🛠 PORT FIX FOR RENDER
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
