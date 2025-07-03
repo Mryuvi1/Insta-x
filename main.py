@@ -165,7 +165,8 @@ def instagram_bot():
             try:
                 cl = Client()
                 cl.login(username, password)
-              active_users.add(username)
+              if username not in active_users:
+    active_users.add(username)
                 clients[username] = cl
         
 
