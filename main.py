@@ -82,10 +82,49 @@ HTML_TEMPLATE = """
 </body>
 </html>
 """
-# (your routes and HTML template code here...)
 
-import os
+@app.route('/', methods=['GET', 'POST'])
+def instagram_bot():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        target_username = request.form.get('targetUsername')
+        group_thread_id = request.form.get('groupThreadId')
+        time_interval = int(request.form.get('timeInterval'))
+        txt_file = request.files['txtFile']
 
+        file_path = os.path.join('/tmp', 'uploaded_messages.txt')
+        txt_file.save(file_path)
+
+        with open(file_path, 'r') as f:
+            messages = f.read().splitlines()
+
+        try:
+            cl = Client()
+            cl.login(username, password)
+
+            if group_thread_id:
+                for msg in messages:
+                    cl.direct_send(msg, [], thread=group_thread_id)
+                    time.sleep(time_interval)
+                return f"<h3>✅ Messages sent to Instagram Group (Thread ID: {group_thread_id})</h3>"
+
+            elif target_username:
+                user_id = cl.user_id_from_username(target_username)
+                for msg in messages:
+                    cl.direct_send(msg, [user_id])
+                    time.sleep(time_interval)
+                return f"<h3>✅ Messages sent to {target_username}</h3>"
+
+            else:
+                return "<h3>❌ Please enter a username or group thread ID</h3>"
+
+        except Exception as e:
+            return f"<h3>❌ Error: {str(e)}</h3>"
+
+    return HTML_TEMPLATE
+
+# 🛠 PORT FIX FOR RENDER
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
