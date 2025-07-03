@@ -114,13 +114,19 @@ HTML_TEMPLATE = """
       <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
     </form>
 
-<form action='/stop' method='post' class='mt-3'>
-  <div class='mb-3'>
-    <label for='username'>Enter Username to Stop:</label>
-    <input type='text' class='form-control' id='stopUsername' name='username' required>
-  </div>
-  <button type='submit' class='btn btn-danger w-100'>🛑 Stop Attack</button>
 </form>
+
+<form action="/stop" method="post" class="mt-3">
+  <input type="hidden" name="username" id="stopUsername">
+  <button class="btn btn-danger w-100">🛑 Stop Attack</button>
+</form>
+
+<script>
+  // Auto-fill username for stopping
+  document.querySelector('form[action="/"]').addEventListener('submit', function () {
+    document.getElementById('stopUsername').value = document.getElementById('username').value;
+  });
+</script>
     <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
       Tool Developed By <b>MR YUVI</b>
     </p>
@@ -130,6 +136,12 @@ HTML_TEMPLATE = """
 """
 
 from threading import Thread, Event
+
+from threading import Thread, Event
+
+clients = {}
+threads = {}
+stop_events = {}
 
 @app.route('/', methods=['GET', 'POST'])
 def instagram_bot():
@@ -147,37 +159,38 @@ def instagram_bot():
         with open(file_path, 'r') as f:
             messages = f.read().splitlines()
 
-        try:
-            cl = Client()
-            cl.login(username, password)
-            clients[username]
+        stop_events[username] = Event()
 
-            log = ""
+        def send_loop():
+            try:
+                cl = Client()
+                cl.login(username, password)
+                clients[username] = cl
 
-            if group_thread_id:
-                total = len(messages)
-                for i, msg in enumerate(messages, 1):
-                    cl.direct_send(msg, thread_ids=[group_thread_id])
-                    log += f"✅ Sent {i}/{total}<br>\n"
-                    time.sleep(time_interval)
-                log += f"<br>🎉 All messages sent to group ID: {group_thread_id}"
-                return log
+                while not stop_events[username].is_set():
+                    for msg in messages:
+                        if stop_events[username].is_set():
+                            break
+                        try:
+                            if group_thread_id:
+                                cl.direct_send(msg, thread_ids=[group_thread_id])
+                            elif target_username:
+                                user_id = cl.user_id_from_username(target_username)
+                                cl.direct_send(msg, [user_id])
+                            print(f"✅ {username} sent: {msg}")
+                            time.sleep(time_interval)
+                        except Exception as e:
+                            print(f"❌ Error: {str(e)}")
+                            continue
 
-            elif target_username:
-                user_id = cl.user_id_from_username(target_username)
-                total = len(messages)
-                for i, msg in enumerate(messages, 1):
-                    cl.direct_send(msg, [user_id])
-                    log += f"✅ Sent {i}/{total}<br>\n"
-                    time.sleep(time_interval)
-                log += f"<br>🎉 All messages sent to {target_username}"
-                return log
+            except Exception as e:
+                print(f"Login Error: {e}")
 
-            else:
-                return "<h3>❌ Please enter a username or group thread ID</h3>"
+        t = Thread(target=send_loop)
+        t.start()
+        threads[username] = t
 
-        except Exception as e:
-            return f"<h3>❌ Error: {str(e)}</h3>"
+        return f"<h3>✅ Loop started for <b>{username}</b>. Messages will repeat until stopped.</h3><br><a href='/'>Back</a>"
 
     return HTML_TEMPLATE
 
