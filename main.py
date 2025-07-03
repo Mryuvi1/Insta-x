@@ -4,7 +4,7 @@ from threading import Thread, Event, Lock
 import os
 import time
 
-app = Flask(name)
+app = Flask(__name__)
 clients = {}        # username: Client object
 active_users = {}   # username: Thread object
 stop_events = {}    # username: Event object
