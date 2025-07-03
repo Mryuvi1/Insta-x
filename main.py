@@ -13,34 +13,36 @@ HTML_TEMPLATE = """
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
   <title>🩷𝐇𝐀𝐓𝐄𝐑𝐒 𝐅𝐔𝐂𝐊𝐄𝐑 𝐓𝐎𝐎𝐋 BY | 𝐋𝐄𝐆𝐄𝐍𝐃 𝐘𝐔𝐕𝐈 🐼</title>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
-  <style>
-    body {
-      background-image: url('https://i.postimg.cc/Wbc2fG9y/b7ae332981e970d9221a8d4e193e4c1e.jpg');
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      max-width: 500px;
-      background-color: rgba(255, 255, 255, 0.95);
-      border-radius: 10px;
-      padding: 20px;
-      margin: 0 auto;
-      margin-top: 50px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    .owner-tag {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-weight: bold;
-      z-index: 999;
-      text-shadow: 1px 1px 3px black;
-    }
-  </style>
+<style>
+  body {
+    background-image: url('https://i.postimg.cc/Wbc2fG9y/b7ae332981e970d9221a8d4e193e4c1e.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100vh;
+    margin: 0;
+    backdrop-filter: blur(6px);
+  }
+  .container {
+    max-width: 500px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 25px;
+    margin: 0 auto;
+    margin-top: 60px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+  .btn-primary {
+    background-color: #90ee90 !important;
+    color: black !important;
+    border: none !important;
+    font-weight: bold;
+  }
+</style>
 </head>
 <body>
   <!-- 🔥 Owner Branding Top Left -->
@@ -77,10 +79,31 @@ HTML_TEMPLATE = """
       Tool Developed By <b>MR YUVI</b>
     </p>
   </div>
+  <script>
+  document.querySelector('form').addEventListener('submit', function() {
+    alert('Sending messages... Please wait!');
+  });
+</script>
 </body>
 </html>
 """
+from flask import Response
 
+def check_auth(username, password):
+    return username == "admin" and password == "yuvi123"
+
+def authenticate():
+    return Response(
+        'Could not verify your access level for that URL.\n'
+        'You have to login with proper credentials', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+@app.before_request
+def require_auth():
+    auth = request.authorization
+    if not auth or not check_auth(auth.username, auth.password):
+        return authenticate()
+      
 @app.route('/', methods=['GET', 'POST'])
 def instagram_bot():
     if request.method == 'POST':
@@ -95,6 +118,8 @@ def instagram_bot():
 
         with open(file_path, 'r') as f:
             messages = f.read().splitlines()
+          if len(messages) > 20:
+            return "<h3>❌ You can only send up to 20 messages at once.</h3>"
 
         try:
             cl = Client()
@@ -107,8 +132,14 @@ def instagram_bot():
 
             return f"<h3>✅ Messages sent successfully to {target_username}</h3>"
         except Exception as e:
-            return f"<h3>❌ Error: {str(e)}</h3>"
-
+            return f"""
+                <h3 style='color:red;'>❌ Error Occurred</h3>
+                <p>{str(e)}</p>
+                <a href='/'>Go Back</a>
+            """
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
     return HTML_TEMPLATE
 
 if __name__ == '__main__':
