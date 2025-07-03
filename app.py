@@ -21,7 +21,7 @@ def init_db():
 def home():
     if 'user' in session:
         username = session['user']
-        with sqlite3.connect(' 'users.db') as conn:
+        with sqlite3.connect('users.db') as conn:
             cur = conn.cursor()
             cur.execute("SELECT approved FROM users WHERE username=?", (username,))
             result = cur.fetchone()
