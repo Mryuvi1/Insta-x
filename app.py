@@ -11,8 +11,8 @@ def init_db():
         conn.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE,
-                password TEXT,
+                username mryuvi,
+                password yuviking,
                 approved INTEGER DEFAULT 0
             )
         ''')
