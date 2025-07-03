@@ -142,7 +142,13 @@ def home():
 
     return HTML_TEMPLATE
     """
-@app.route('/stop', methods=['POST']) def stop(): stopped = [] for username, event in stop_events.items(): event.set() stopped.append(username) return f"<h3>🛑 Stopped message loop for: {', '.join(stopped)}</h3><br><a href='/'>Back</a>"
+@app.route('/stop', methods=['POST'])
+def stop():
+    stopped = []
+    for username, event in stop_events.items():
+        event.set()
+        stopped.append(username)
+    return f"<h3>🛑 Stopped message loop for: {', '.join(stopped)}</h3><br><a href='/'>Back</a>"
 
 @app.route('/active') def active(): return "<br>".join([f"👤 {u}" for u in active_users.keys()]) or "No active users"
 
