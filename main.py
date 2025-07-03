@@ -1,4 +1,8 @@
-from flask import Flask, request, render_template_string, jsonify from instagrapi import Client from threading import Thread, Event, Lock import os import time
+from flask import Flask, request, render_template_string, jsonify
+from instagrapi import Client
+from threading import Thread, Event, Lock
+import os
+import time
 
 app = Flask(name)
 
