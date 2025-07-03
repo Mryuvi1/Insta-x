@@ -3,7 +3,7 @@ import requests
 import time
 import os
 
-app = Flask(name)
+app = Flask(__name__)
 app.debug = True
 
 # HTML Templates
