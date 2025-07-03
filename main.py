@@ -2,10 +2,13 @@ from flask import Flask, request
 from instagrapi import Client
 import os
 import time
+from threading import Thread, Event
+
 clients = {}
-stop_flags = {}  # 🛑 Ye har user ke liye stop control rakhega
-from instagrapi import Client
+stop_flags = {}
+
 app = Flask(__name__)
+app.debug = True
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -174,9 +177,11 @@ def instagram_bot():
             except Exception as e:
                 print(f"❌ Login/send error: {e}")
 
-        Thread(target=send_loop).start()
-        return f"<h3>✅ Message loop started for <b>{username}</b>. Stop anytime using the Stop button.</h3><a href='/'>Back</a>"
-
+        try:
+            Thread(target=send_loop).start()
+            return f"<h3>✅ Message loop started for <b>{username}</b>. Stop anytime using the Stop button.</h3><a href='/'>Back</a>"
+        except Exception as e:
+            return f"<h3>❌ Error starting thread: {str(e)}</h3><a href='/'>Back</a>"
     return HTML_TEMPLATE
 # 🛠 PORT FIX FOR RENDER
 if __name__ == '__main__':
