@@ -142,6 +142,7 @@ from threading import Thread, Event
 clients = {}
 threads = {}
 stop_events = {}
+active_users = set()  # 👈 add this if not already
 
 @app.route('/', methods=['GET', 'POST'])
 def instagram_bot():
@@ -163,13 +164,13 @@ def instagram_bot():
 
         def send_loop():
             try:
-    cl = Client()
-    cl.login(username, password)
+                cl = Client()
+                cl.login(username, password)
 
-    if username not in active_users:
-        active_users.add(username)
+                if username not in active_users:
+                    active_users.add(username)
 
-    clients[username] = cl
+                clients[username] = cl
 
                 while not stop_events[username].is_set():
                     for msg in messages:
@@ -181,20 +182,17 @@ def instagram_bot():
                             elif target_username:
                                 user_id = cl.user_id_from_username(target_username)
                                 cl.direct_send(msg, [user_id])
-                            print(f"✅ {username} sent: {msg}")
                             time.sleep(time_interval)
                         except Exception as e:
-                            print(f"❌ Error: {str(e)}")
-                            continue
-
+                            print(f"Error sending message: {e}")
             except Exception as e:
-                print(f"Login Error: {e}")
+                print(f"Login error: {e}")
 
         t = Thread(target=send_loop)
         t.start()
         threads[username] = t
 
-        return f"<h3>✅ Loop started for <b>{username}</b>. Messages will repeat until stopped.</h3><br><a href='/'>Back</a>"
+        return f"<h3>✅ Message sending started for <b>{username}</b>.</h3><br><a href='/'>Back</a>"
 
     return HTML_TEMPLATE
 
