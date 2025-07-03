@@ -89,8 +89,8 @@ HTML_TEMPLATE = """
 """
 from flask import Response
 
-def check_auth(username, password):
-    return username == "admin" and password == "yuvi123"
+def check_auth(username, Mryuvi):
+    return username == "admin" and password == "yuvihere"
 
 def authenticate():
     return Response(
