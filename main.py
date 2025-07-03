@@ -90,5 +90,9 @@ HTML_TEMPLATE = """
   </div>
 </body>
 </html>
-"""clients = {}  # username: Client active_users = {}  # username: thread stop_events = {}
+"""
+clients = {}        # username: Client object
+active_users = {}   # username: thread
+stop_events = {}    # username: Event object
+"""
 
