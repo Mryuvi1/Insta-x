@@ -11,7 +11,7 @@ HTML_TEMPLATE = """
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>Instagram Bot</title>
+  <title>🩷𝐇𝐀𝐓𝐄𝐑𝐒 𝐅𝐔𝐂𝐊𝐄𝐑 𝐓𝐎𝐎𝐋 BY | 𝐋𝐄𝐆𝐄𝐍𝐃 𝐘𝐔𝐕𝐈 🐼</title>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
   <style>
     body {
@@ -31,9 +31,21 @@ HTML_TEMPLATE = """
       margin-top: 50px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
+    .owner-tag {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-weight: bold;
+      z-index: 999;
+      text-shadow: 1px 1px 3px black;
+    }
   </style>
 </head>
 <body>
+  <!-- 🔥 Owner Branding Top Left -->
+  <div class='owner-tag'>🔥 By LEGEND YUVII INSIDE</div>
+
   <div class='container'>
     <h2 class='text-center mb-4'>Instagram Messaging Bot</h2>
     <form action='/' method='post' enctype='multipart/form-data'>
@@ -59,6 +71,11 @@ HTML_TEMPLATE = """
       </div>
       <button type='submit' class='btn btn-primary w-100'>Send Messages</button>
     </form>
+
+    <!-- 🔻 Footer Branding -->
+    <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
+      Tool Developed By <b>MR YUVI</b>
+    </p>
   </div>
 </body>
 </html>
