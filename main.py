@@ -91,8 +91,8 @@ HTML_TEMPLATE = """
 </body>
 </html>
 """
-clients = {}        # username: Client object
-active_users = {}   # username: Thread object
-stop_events = {}    # username: Event object
+# clients = {}        # username: Client object
+# active_users = {}   # username: Thread object
+# stop_events = {}    # username: Event object
 """
 
