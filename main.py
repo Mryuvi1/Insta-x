@@ -121,6 +121,8 @@ HTML_TEMPLATE = """
 </html>
 """
 
+from threading import Thread, Event
+
 @app.route('/', methods=['GET', 'POST'])
 def instagram_bot():
     if request.method == 'POST':
@@ -131,7 +133,7 @@ def instagram_bot():
         time_interval = int(request.form.get('timeInterval'))
         txt_file = request.files['txtFile']
 
-        file_path = os.path.join('/tmp', 'uploaded_messages.txt')
+        file_path = os.path.join('/tmp', f'{username}_messages.txt')
         txt_file.save(file_path)
 
         with open(file_path, 'r') as f:
@@ -140,6 +142,7 @@ def instagram_bot():
         try:
             cl = Client()
             cl.login(username, password)
+            clients[username]
 
             log = ""
 
