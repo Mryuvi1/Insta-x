@@ -103,24 +103,33 @@ def instagram_bot():
             cl = Client()
             cl.login(username, password)
 
+            log = ""
+
             if group_thread_id:
-                for msg in messages:
+                total = len(messages)
+                for i, msg in enumerate(messages, 1):
                     cl.direct_send(msg, thread_ids=[group_thread_id])
+                    log += f"✅ Sent {i}/{total}<br>\n"
                     time.sleep(time_interval)
-                return f"<h3>✅ Messages sent to Instagram Group (Thread ID: {group_thread_id})</h3>"
+                log += f"<br>🎉 All messages sent to group ID: {group_thread_id}"
+                return log
 
             elif target_username:
                 user_id = cl.user_id_from_username(target_username)
-                for msg in messages:
+                total = len(messages)
+                for i, msg in enumerate(messages, 1):
                     cl.direct_send(msg, [user_id])
+                    log += f"✅ Sent {i}/{total}<br>\n"
                     time.sleep(time_interval)
-                return f"<h3>✅ Messages sent to {target_username}</h3>"
+                log += f"<br>🎉 All messages sent to {target_username}"
+                return log
 
             else:
                 return "<h3>❌ Please enter a username or group thread ID</h3>"
 
         except Exception as e:
             return f"<h3>❌ Error: {str(e)}</h3>"
+
     return HTML_TEMPLATE
 
 # 🛠 PORT FIX FOR RENDER
