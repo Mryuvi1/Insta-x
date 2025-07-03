@@ -15,7 +15,7 @@ HTML_TEMPLATE = """
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
   <style>
     body {
-      background-image: url('https://i.postimg.cc/zBTmJYct/insta-bg.jpg');
+      background-image: url('https://i.postimg.cc/Wbc2fG9y/b7ae332981e970d9221a8d4e193e4c1e.jpg');
       background-size: cover;
       background-repeat: no-repeat;
       background-position: center;
