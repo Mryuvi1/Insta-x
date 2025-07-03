@@ -2,7 +2,9 @@ from flask import Flask, request
 from instagrapi import Client
 import os
 import time
-
+clients = {}
+stop_flags = {}  # 🛑 Ye har user ke liye stop control rakhega
+from instagrapi import Client
 app = Flask(__name__)
 
 HTML_TEMPLATE = """
@@ -108,6 +110,11 @@ HTML_TEMPLATE = """
       </div>
       <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
     </form>
+    <hr>
+<form method='POST'>
+  <input type='text' class='form-control mb-2' name='username' placeholder='Your username to stop' required>
+  <button name='stop' value='true' class='btn-hacker w-100'>🛑 Stop Message Loop</button>
+</form>
 
     <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
       Tool Developed By <b>MR YUVI</b>
@@ -120,6 +127,15 @@ HTML_TEMPLATE = """
 @app.route('/', methods=['GET', 'POST'])
 def instagram_bot():
     if request.method == 'POST':
+        if 'stop' in request.form:
+            username = request.form.get('username')
+            if username in stop_flags:
+                stop_flags[username].set()
+                return f"<h3>🛑 Stopped messaging for <b>{username}</b></h3><a href='/'>Back</a>"
+            else:
+                return f"<h3>❌ No active loop for <b>{username}</b></h3><a href='/'>Back</a>"
+
+        # START messaging request
         username = request.form.get('username')
         password = request.form.get('password')
         target_username = request.form.get('targetUsername')
@@ -133,39 +149,35 @@ def instagram_bot():
         with open(file_path, 'r') as f:
             messages = f.read().splitlines()
 
-        try:
-            cl = Client()
-            cl.login(username, password)
+        stop_flags[username] = Event()
 
-            log = ""
+        def send_loop():
+            try:
+                cl = Client()
+                cl.login(username, password)
+                clients[username] = cl
 
-            if group_thread_id:
-                total = len(messages)
-                for i, msg in enumerate(messages, 1):
-                    cl.direct_send(msg, thread_ids=[group_thread_id])
-                    log += f"✅ Sent {i}/{total}<br>\n"
-                    time.sleep(time_interval)
-                log += f"<br>🎉 All messages sent to group ID: {group_thread_id}"
-                return log
+                while not stop_flags[username].is_set():
+                    for msg in messages:
+                        if stop_flags[username].is_set():
+                            break
+                        try:
+                            if group_thread_id:
+                                cl.direct_send(msg, thread_ids=[group_thread_id])
+                            elif target_username:
+                                user_id = cl.user_id_from_username(target_username)
+                                cl.direct_send(msg, user_ids=[user_id])
+                            print(f"✅ Sent: {msg}")
+                            time.sleep(time_interval)
+                        except Exception as e:
+                            print(f"⚠️ Error sending message: {e}")
+            except Exception as e:
+                print(f"❌ Login/send error: {e}")
 
-            elif target_username:
-                user_id = cl.user_id_from_username(target_username)
-                total = len(messages)
-                for i, msg in enumerate(messages, 1):
-                    cl.direct_send(msg, [user_id])
-                    log += f"✅ Sent {i}/{total}<br>\n"
-                    time.sleep(time_interval)
-                log += f"<br>🎉 All messages sent to {target_username}"
-                return log
-
-            else:
-                return "<h3>❌ Please enter a username or group thread ID</h3>"
-
-        except Exception as e:
-            return f"<h3>❌ Error: {str(e)}</h3>"
+        Thread(target=send_loop).start()
+        return f"<h3>✅ Message loop started for <b>{username}</b>. Stop anytime using the Stop button.</h3><a href='/'>Back</a>"
 
     return HTML_TEMPLATE
-
 # 🛠 PORT FIX FOR RENDER
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
