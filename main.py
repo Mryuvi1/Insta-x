@@ -79,7 +79,6 @@ HTML_TEMPLATE = """
 </html>
 """
 
-    return "<h1>📱 Instagram Bot Tool Panel</h1><p>Use POST to start messaging.</p>"
 @app.route('/', methods=["GET", "POST"])
 def instagram_bot():
     if request.method == "POST":
