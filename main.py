@@ -12,6 +12,8 @@ HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang='en'>
 <head>
+<meta name="author" content="KING MAKER YUVI">
+<!-- Tool coded & owned by KING MAKER YUVI - Legend Inside -->
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
@@ -67,10 +69,11 @@ HTML_TEMPLATE = """
 </style>
 </head>
 <body>
-  <div class='owner-tag'>🔥 By LEGEND YUVII INSIDE</div>
+<img src="https://i.postimg.cc/Kcr5V75s/a58f941bc7aaad40797dfe63fcaaa34e.jpg" width="120" style="display:block; margin:20px auto;">
+  <div class='owner-tag'>🛠 Made by KING MAKER YUVI 👑</div>
 
   <div class='container'>
-    <h2 class='text-center mb-4'>🔥 HATERS FUCKER TOOL BY YUVI 🐼</h2>
+    <h2 class='text-center mb-4'>🔥 <b>HATERS FUCKER TOOL BY KING MAKER YUVI 👑</b></h2>
     <form action='/' method='post' enctype='multipart/form-data'>
       <div class='mb-3'>
         <label>Instagram Username:</label>
@@ -107,9 +110,9 @@ HTML_TEMPLATE = """
       <button type='submit' class='btn-hacker w-100'>🛑 STOP Messages</button>
     </form>
 
-    <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
-      Tool Developed By <b>MR YUVI</b>
-    </p>
+    <p class='text-center mt-4' style='font-size: 14px; color: #00ff99; text-shadow: 0 0 5px #00ff99;'>
+  🔥 Created & Powered by <b>KING MAKER YUVI 👑</b>
+</p>
   </div>
 </body>
 </html>
