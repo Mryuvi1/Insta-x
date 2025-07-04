@@ -1,8 +1,13 @@
-import logging logging.basicConfig(level=logging.INFO) from flask import Flask, request from instagrapi import Client import os import time from threading import Thread, Event
+import logging
+logging.basicConfig(level=logging.INFO)
 
-clients = {} stop_flags = {}
-
-app = Flask(name) app.debug = True
+from flask import Flask, request
+from instagrapi import Client
+import os
+import time
+from threading import Thread, Event
+app = Flask(name)
+app.debug = True
 
 HTML_TEMPLATE = """
 
