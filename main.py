@@ -81,8 +81,11 @@ HTML_TEMPLATE = """
   </div>
 </body>
 </html>
-"""@app.route('/', methods=['GET', 'POST']) def instagram_bot(): if request.method == 'POST': if 'stop' in request.form: username = request.form.get('username') if username in stop_flags: stop_flags[username].set() return f"<h3>🚩 Stopped messaging for <b>{username}</b></h3><a href='/'>Back</a>" else: return f"<h3>❌ No active loop for <b>{username}</b></h3><a href='/'>Back</a>"
-
+@app.route('/', methods=['GET', 'POST'])
+def instagram_bot():
+    if request.method == 'POST':
+        # your logic here
+    return HTML_TEMPLATE
 username = request.form.get('username')
     password = request.form.get('password')
     target_username = request.form.get('targetUsername')
