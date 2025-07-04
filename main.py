@@ -1,3 +1,4 @@
+import traceback
 from flask import Flask, request
 from instagrapi import Client
 from threading import Thread, Event
@@ -107,28 +108,48 @@ def instagram_bot():
         stop_flags[username] = Event()
 
         def send_loop():
-            try:
-                cl = Client()
-                cl.login(username, password)
-                clients[username] = cl
-                active_users.add(username)
+    try:
+        cl = Client()
+        cl.login(username, password)
+        print("✅ Login successful for:", username)
 
-                while not stop_flags[username].is_set():
-                    for msg in messages:
-                        if stop_flags[username].is_set():
-                            break
-                        try:
-                            full_msg = f"{victim_name}: {msg}" if victim_name else msg
-                            if group_thread_id:
-                                cl.direct_send(full_msg, thread_ids=[group_thread_id])
-                            elif target_username:
-                                user_id = cl.user_id_from_username(target_username)
-                                cl.direct_send(full_msg, [user_id])
-                            time.sleep(time_interval)
-                        except Exception as e:
-                            print(f"Send error: {e}")
-            except Exception as e:
-                print(f"Login error: {e}")
+        clients[username] = cl
+        active_users.add(username)
+
+        print("✅ Loop started for:", username)
+        print("📨 Messages loaded:", messages)
+
+        while not stop_flags[username].is_set():
+            print("🔁 Loop running...")
+
+            for msg in messages:
+                if stop_flags[username].is_set():
+                    print("⛔️ Stop flag detected, breaking loop.")
+                    break
+
+                try:
+                    full_msg = f"{victim_name}: {msg}" if victim_name else msg
+                    print("📤 Message to send:", full_msg)
+
+                    if group_thread_id:
+                        print("➡️ Sending to group:", group_thread_id)
+                        cl.direct_send(full_msg, thread_ids=[group_thread_id])
+                    elif target_username:
+                        print("➡️ Sending to user:", target_username)
+                        user_id = cl.user_id_from_username(target_username)
+                        print("👤 Resolved user ID:", user_id)
+                        cl.direct_send(full_msg, [user_id])
+                    
+                    print("✅ Sent successfully!")
+                    time.sleep(time_interval)
+
+                except Exception as e:
+                    print("❌ Send error:")
+                    traceback.print_exc()
+
+    except Exception as e:
+        print("❌ Login error:")
+        traceback.print_exc()
 
         Thread(target=send_loop).start()
         return f"<h3>✅ Message loop started for <b>{username}</b>. You can stop anytime.</h3><a href='/'>Back</a>"
