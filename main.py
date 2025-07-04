@@ -156,7 +156,7 @@ def instagram_bot():
         return f"<h3>✅ Message loop started for <b>{username}</b>. You can stop anytime.</h3>"
 
     # GET request fallback
-    return render_template("index.html")
+    return "<h1>📱 Insta Tool is Live — Ready for Action!</h1>"
   
 
     return HTML_TEMPLATE
