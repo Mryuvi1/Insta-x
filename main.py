@@ -68,7 +68,7 @@ HTML_TEMPLATE = """
 <body>
   <div class='owner-tag'>🔥 Tool By LEGEND YUVII INSIDE</div>
   <div class='container'>
-    <img src='https://i.postimg.cc/Wbc2fG9y/b7ae332981e970d9221a8d4e193e4c1e.jpg' alt='Logo' class='logo'>
+    <img src='https://i.postimg.cc/Kcr5V75s/a58f941bc7aaad40797dfe63fcaaa34e.jpg' alt='Logo' class='logo'>
     <h2 class='text-center mb-4'>Instagram Messaging Bot</h2>
     <form action='/' method='post' enctype='multipart/form-data'>
       <div class='mb-3'>
