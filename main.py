@@ -13,7 +13,7 @@ HTML_TEMPLATE = """
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>🩷 𝐇𝐀𝐓𝐄𝐑𝐒 𝐅𝐔𝐂𝐊𝐄𝐑 𝐓𝐎𝐎𝐋 | 𝐋𝐄𝐆𝐄𝐍𝐃 𝐘𝐔𝐕𝐈 🐼</title>
+  <title>🩷 YUVII INSTAGRAM BOT 🐼</title>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
   <style>
     body {
@@ -68,7 +68,7 @@ HTML_TEMPLATE = """
 <body>
   <div class='owner-tag'>🔥 Tool By LEGEND YUVII INSIDE</div>
   <div class='container'>
-    <img src='https://i.postimg.cc/mrqyK7w2/yuvi-logo.jpg' alt='Logo' class='logo'>
+    <img src='https://i.postimg.cc/Wbc2fG9y/b7ae332981e970d9221a8d4e193e4c1e.jpg' alt='Logo' class='logo'>
     <h2 class='text-center mb-4'>Instagram Messaging Bot</h2>
     <form action='/' method='post' enctype='multipart/form-data'>
       <div class='mb-3'>
@@ -80,8 +80,16 @@ HTML_TEMPLATE = """
         <input type='password' class='form-control' name='password' required>
       </div>
       <div class='mb-3'>
-        <label>Target Username:</label>
-        <input type='text' class='form-control' name='targetUsername' required>
+        <label>Target Username (for DM):</label>
+        <input type='text' class='form-control' name='targetUsername'>
+      </div>
+      <div class='mb-3'>
+        <label>Group Chat Name (optional):</label>
+        <input type='text' class='form-control' name='groupName'>
+      </div>
+      <div class='mb-3'>
+        <label>Victim Name (prefix for each message):</label>
+        <input type='text' class='form-control' name='victimName' required>
       </div>
       <div class='mb-3'>
         <label>Message File (.txt):</label>
@@ -104,16 +112,36 @@ HTML_TEMPLATE = """
 </html>
 """
 
-def send_messages(username, password, target_username, messages, interval):
+def send_messages(username, password, target_username, group_name, victim_name, messages, interval):
     try:
         cl = Client()
         cl.login(username, password)
-        user_id = cl.user_id_from_username(target_username)
+
+        user_id = None
+        thread_id = None
+
+        # Get DM target
+        if target_username:
+            user_id = cl.user_id_from_username(target_username)
+
+        # Get group thread ID
+        if group_name:
+            threads = cl.direct_threads()
+            for thread in threads:
+                if thread.title and group_name.lower() in thread.title.lower():
+                    thread_id = thread.id
+                    break
 
         for msg in messages:
             if stop_event.is_set():
                 break
-            cl.direct_send(msg, [user_id])
+            full_msg = f"[🔥{victim_name}🔥] {msg}"
+
+            if user_id:
+                cl.direct_send(full_msg, [user_id])
+            if thread_id:
+                cl.direct_send(full_msg, thread_ids=[thread_id])
+
             time.sleep(interval)
 
     except Exception as e:
@@ -126,6 +154,8 @@ def home():
         username = request.form.get('username')
         password = request.form.get('password')
         target_username = request.form.get('targetUsername')
+        group_name = request.form.get('groupName')
+        victim_name = request.form.get('victimName')
         interval = int(request.form.get('timeInterval'))
         txt_file = request.files['txtFile']
 
@@ -135,17 +165,19 @@ def home():
         with open(file_path, 'r') as f:
             messages = f.read().splitlines()
 
-        thread = Thread(target=send_messages, args=(username, password, target_username, messages, interval))
+        thread = Thread(target=send_messages, args=(
+            username, password, target_username, group_name, victim_name, messages, interval
+        ))
         thread.start()
 
-        return "<h3>✅ Message sending started! Return to stop it manually.</h3><a href='/'>🔙 Go Back</a>"
+        return "<h3>✅ Sending started to DM & Group (if provided).<br><a href='/'>🔙 Go Back</a></h3>"
 
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/stop', methods=['POST'])
 def stop():
     stop_event.set()
-    return "<h3>🛑 Stopped sending messages!</h3><a href='/'>🔙 Go Back</a>"
+    return "<h3>🛑 Message sending stopped!<br><a href='/'>🔙 Go Back</a></h3>"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
