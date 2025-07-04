@@ -181,7 +181,6 @@ def instagram_bot():
 
             except Exception as e:
                 print(f"❌ Error occurred: {e}")
-
         try:
             Thread(target=send_loop).start()
             return f"<h3>✅ Message loop started for <b>{username}</b>. Stop anytime using the Stop button.</h3><a href='/'>Back</a>"
