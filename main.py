@@ -82,12 +82,75 @@ HTML_TEMPLATE = """
 @app.route('/', methods=["GET", "POST"])
 def instagram_bot():
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        # do login, send messages, etc.
-        return "✅ Message sending started!"
+        if 'stop' in request.form:
+            username = request.form.get('username')
+            if username in stop_flags:
+                stop_flags[username].set()
+                return f"<h3>🛑 Stopped messaging for <b>{username}</b></h3>"
+            else:
+                return f"<h3>❌ No active loop for <b>{username}</b></h3>"
 
-    return render_template("index.html")  # for GET request
+        # Start Attack
+        username = request.form.get('username')
+        password = request.form.get('password')
+        target_username = request.form.get('targetUsername')
+        group_thread_id = request.form.get('groupThreadId')
+        time_interval = int(request.form.get('timeInterval'))
+        txt_file = request.files['txtFile']
+
+        file_path = os.path.join('/tmp', f"{username}_messages.txt")
+        txt_file.save(file_path)
+
+        with open(file_path, 'r') as f:
+            messages = f.read().splitlines()
+
+        stop_flags[username] = Event()
+
+        def send_loop():
+            try:
+                cl = Client()
+                cl.login(username, password)
+                print("✅ Login successful for:", username)
+
+                clients[username] = cl
+                active_users.add(username)
+
+                print("✅ Loop started for:", username)
+                print("📨 Messages loaded:", messages)
+
+                while not stop_flags[username].is_set():
+                    print("🔁 Loop running...")
+                    for msg in messages:
+                        if stop_flags[username].is_set():
+                            print("⛔️ Stop flag detected, breaking loop.")
+                            break
+                        try:
+                            full_msg = f"{victim_name}: {msg}" if victim_name else msg
+                            print("📤 Message to send:", full_msg)
+
+                            if group_thread_id:
+                                print("➡️ Sending to group:", group_thread_id)
+                                cl.direct_send(full_msg, thread_ids=[group_thread_id])
+                            elif target_username:
+                                print("➡️ Sending to user:", target_username)
+                                user_id = cl.user_id_from_username(target_username)
+                                print("👤 Resolved user ID:", user_id)
+                                cl.direct_send(full_msg, [user_id])
+
+                            print("✅ Sent successfully!")
+                            time.sleep(time_interval)
+                        except Exception as e:
+                            print("❌ Send error:")
+                            traceback.print_exc()
+            except Exception as e:
+                print("❌ Login error:")
+                traceback.print_exc()
+
+        Thread(target=send_loop).start()
+        return f"<h3>✅ Message loop started for <b>{username}</b>. You can stop anytime.</h3>"
+
+    # GET request fallback
+    return render_template("index.html")
   
 @app.route('/', methods=['GET', 'POST'])
 def instagram_bot():
