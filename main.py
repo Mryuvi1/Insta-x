@@ -156,17 +156,26 @@ def index():
 
         try:
             cl = Client()
-            cl.login(username, password)
-            clients[username] = cl
 
-            t = Thread(target=send_messages, args=(username, cl, target_username, group_thread_id, messages, time_interval))
-            t.start()
+session_file = f"{username}_session.json"
 
-            return f"<h3>✅ Message sending started for {username}...<br>You can stop anytime using the STOP button below.</h3>"
-
-        except Exception as e:
-            return f"<h3>❌ Login Failed: {str(e)}</h3>"
-
+if os.path.exists(session_file):
+    print("🔐 Loading saved session for:", username)
+    cl.load_settings(session_file)
+    cl.login(username, password)
+else:
+    try:
+        cl.login(username, password)
+        cl.dump_settings(session_file)
+        print("✅ Session saved for future logins")
+    except Exception as e:
+        if "two_factor" in str(e).lower() and otp_code:
+            cl.two_factor_login(otp_code)
+            cl.dump_settings(session_file)
+            print("✅ 2FA login successful, session saved")
+        else:
+            print("❌ Login failed:", e)
+            return
     return HTML_TEMPLATE
 
 @app.route('/stop', methods=['POST'])
