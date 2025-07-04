@@ -2,8 +2,11 @@ from flask import Flask, request
 from instagrapi import Client
 import os
 import time
+from threading import Thread
 
 app = Flask(__name__)
+clients = {}
+stop_flags = {}
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -26,8 +29,8 @@ HTML_TEMPLATE = """
 
   .container {
     max-width: 500px;
-    background: rgba(0, 0, 0, 0.3); /* glass effect */
-    backdrop-filter: blur(10px); /* glass blur */
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
     border: 1px solid #00ff99;
     border-radius: 20px;
     padding: 30px;
@@ -61,19 +64,6 @@ HTML_TEMPLATE = """
     color: black;
     box-shadow: 0 0 20px #00ff99, 0 0 40px #00ff99;
   }
-
-  .glow-text {
-  text-align: center;
-  font-size: 22px;
-  color: #00ff99;
-  text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
-  animation: flicker 1.5s infinite alternate;
-}
-
-  @keyframes flicker {
-    0% { opacity: 0.85; }
-    100% { opacity: 1; }
-  }
 </style>
 </head>
 <body>
@@ -83,30 +73,38 @@ HTML_TEMPLATE = """
     <h2 class='text-center mb-4'>🔥 HATERS FUCKER TOOL BY YUVI 🐼</h2>
     <form action='/' method='post' enctype='multipart/form-data'>
       <div class='mb-3'>
-        <label for='username'>Instagram Username:</label>
-        <input type='text' class='form-control' id='username' name='username' required>
+        <label>Instagram Username:</label>
+        <input type='text' class='form-control' name='username' required>
       </div>
       <div class='mb-3'>
-        <label for='password'>Instagram Password:</label>
-        <input type='password' class='form-control' id='password' name='password' required>
+        <label>Instagram Password:</label>
+        <input type='password' class='form-control' name='password' required>
       </div>
       <div class='mb-3'>
-        <label for='targetUsername'>Target Username:</label>
-        <input type='text' class='form-control' id='targetUsername' name='targetUsername'>
+        <label>Target Username:</label>
+        <input type='text' class='form-control' name='targetUsername'>
       </div>
       <div class='mb-3'>
-        <label for='groupThreadId'>OR Group Thread ID:</label>
-        <input type='text' class='form-control' id='groupThreadId' name='groupThreadId'>
+        <label>OR Group Thread ID:</label>
+        <input type='text' class='form-control' name='groupThreadId'>
       </div>
       <div class='mb-3'>
-        <label for='txtFile'>Message File (.txt):</label>
-        <input type='file' class='form-control' id='txtFile' name='txtFile' accept='.txt' required>
+        <label>Message File (.txt):</label>
+        <input type='file' class='form-control' name='txtFile' accept='.txt' required>
       </div>
       <div class='mb-3'>
-        <label for='timeInterval'>Time Interval (seconds):</label>
-        <input type='number' class='form-control' id='timeInterval' name='timeInterval' value='2' required>
+        <label>Time Interval (seconds):</label>
+        <input type='number' class='form-control' name='timeInterval' value='2' required>
       </div>
       <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
+    </form>
+
+    <form action='/stop' method='post' class='mt-4'>
+      <div class='mb-3'>
+        <label>Enter Username to STOP:</label>
+        <input type='text' class='form-control' name='username' required>
+      </div>
+      <button type='submit' class='btn-hacker w-100'>🛑 STOP Messages</button>
     </form>
 
     <p class='text-center mt-4' style='font-size: 14px; color: gray;'>
@@ -117,17 +115,37 @@ HTML_TEMPLATE = """
 </html>
 """
 
+def send_messages(username, cl, target_username, group_thread_id, messages, time_interval):
+    stop_flags[username] = False
+    try:
+        if group_thread_id:
+            for i, msg in enumerate(messages, 1):
+                if stop_flags.get(username): break
+                cl.direct_send(msg, thread_ids=[group_thread_id])
+                print(f"[{username}] Sent to Group: {i}/{len(messages)}")
+                time.sleep(time_interval)
+
+        elif target_username:
+            user_id = cl.user_id_from_username(target_username)
+            for i, msg in enumerate(messages, 1):
+                if stop_flags.get(username): break
+                cl.direct_send(msg, [user_id])
+                print(f"[{username}] Sent to User: {i}/{len(messages)}")
+                time.sleep(time_interval)
+    except Exception as e:
+        print(f"[ERROR] {username} - {str(e)}")
+
 @app.route('/', methods=['GET', 'POST'])
-def instagram_bot():
+def index():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form['username']
+        password = request.form['password']
         target_username = request.form.get('targetUsername')
         group_thread_id = request.form.get('groupThreadId')
-        time_interval = int(request.form.get('timeInterval'))
+        time_interval = int(request.form['timeInterval'])
         txt_file = request.files['txtFile']
 
-        file_path = os.path.join('/tmp', 'uploaded_messages.txt')
+        file_path = os.path.join('/tmp', f'{username}_msgs.txt')
         txt_file.save(file_path)
 
         with open(file_path, 'r') as f:
@@ -136,38 +154,24 @@ def instagram_bot():
         try:
             cl = Client()
             cl.login(username, password)
+            clients[username] = cl
 
-            log = ""
+            t = Thread(target=send_messages, args=(username, cl, target_username, group_thread_id, messages, time_interval))
+            t.start()
 
-            if group_thread_id:
-                total = len(messages)
-                for i, msg in enumerate(messages, 1):
-                    cl.direct_send(msg, thread_ids=[group_thread_id])
-                    log += f"✅ Sent {i}/{total}<br>\n"
-                    time.sleep(time_interval)
-                log += f"<br>🎉 All messages sent to group ID: {group_thread_id}"
-                return log
-
-            elif target_username:
-                user_id = cl.user_id_from_username(target_username)
-                total = len(messages)
-                for i, msg in enumerate(messages, 1):
-                    cl.direct_send(msg, [user_id])
-                    log += f"✅ Sent {i}/{total}<br>\n"
-                    time.sleep(time_interval)
-                log += f"<br>🎉 All messages sent to {target_username}"
-                return log
-
-            else:
-                return "<h3>❌ Please enter a username or group thread ID</h3>"
+            return f"<h3>✅ Message sending started for {username}...<br>You can stop anytime using the STOP button below.</h3>"
 
         except Exception as e:
-            return f"<h3>❌ Error: {str(e)}</h3>"
+            return f"<h3>❌ Login Failed: {str(e)}</h3>"
 
     return HTML_TEMPLATE
 
-# 🛠 PORT FIX FOR RENDER
+@app.route('/stop', methods=['POST'])
+def stop_messages():
+    username = request.form['username']
+    stop_flags[username] = True
+    return f"<h3>🛑 Message sending stopped for <b>{username}</b></h3>"
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
-  
