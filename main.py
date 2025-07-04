@@ -80,10 +80,6 @@ HTML_TEMPLATE = """
         <input type='password' class='form-control' name='password' required>
       </div>
       <div class='mb-3'>
-        <label>Two-Factor Code (if asked):</label>
-        <input type='text' class='form-control' name='otp'>
-      </div>
-      <div class='mb-3'>
         <label>Target Username (for DM):</label>
         <input type='text' class='form-control' name='targetUsername'>
       </div>
@@ -116,33 +112,24 @@ HTML_TEMPLATE = """
 </html>
 """
 
-def send_messages(username, password, otp_code, target_username, group_name, victim_name, messages, interval):
+def send_messages(username, password, target_username, group_name, victim_name, messages, interval):
     try:
         cl = Client()
-        try:
-            cl.login(username, password)
-            print("✅ Logged in without 2FA")
-        except Exception as e:
-            if "two_factor" in str(e).lower() and otp_code:
-                print("📲 2FA required, using provided code...")
-                cl.two_factor_login(otp_code)
-            else:
-                print("❌ Login failed:", e)
-                return
+        cl.login(username, password)
 
         user_id = None
         thread_id = None
 
+        # Get DM target
         if target_username:
             user_id = cl.user_id_from_username(target_username)
-            print("✅ Fetched DM target:", user_id)
 
+        # Get group thread ID
         if group_name:
             threads = cl.direct_threads()
             for thread in threads:
                 if thread.title and group_name.lower() in thread.title.lower():
                     thread_id = thread.id
-                    print("✅ Found group thread:", thread_id)
                     break
 
         for msg in messages:
@@ -152,15 +139,13 @@ def send_messages(username, password, otp_code, target_username, group_name, vic
 
             if user_id:
                 cl.direct_send(full_msg, [user_id])
-                print("📨 Sent DM:", full_msg)
             if thread_id:
                 cl.direct_send(full_msg, thread_ids=[thread_id])
-                print("📨 Sent to group:", full_msg)
 
             time.sleep(interval)
 
     except Exception as e:
-        print("❌ ERROR during send:", e)
+        print("❌ Error:", e)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -168,7 +153,6 @@ def home():
         stop_event.clear()
         username = request.form.get('username')
         password = request.form.get('password')
-        otp_code = request.form.get('otp')
         target_username = request.form.get('targetUsername')
         group_name = request.form.get('groupName')
         victim_name = request.form.get('victimName')
@@ -182,7 +166,7 @@ def home():
             messages = f.read().splitlines()
 
         thread = Thread(target=send_messages, args=(
-            username, password, otp_code, target_username, group_name, victim_name, messages, interval
+            username, password, target_username, group_name, victim_name, messages, interval
         ))
         thread.start()
 
