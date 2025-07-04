@@ -107,7 +107,7 @@ def instagram_bot():
 
         stop_flags[username] = Event()
 
-        def send_loop():
+def send_loop():
     try:
         cl = Client()
         cl.login(username, password)
@@ -139,13 +139,17 @@ def instagram_bot():
                         user_id = cl.user_id_from_username(target_username)
                         print("👤 Resolved user ID:", user_id)
                         cl.direct_send(full_msg, [user_id])
-                    
+
                     print("✅ Sent successfully!")
                     time.sleep(time_interval)
 
                 except Exception as e:
                     print("❌ Send error:")
                     traceback.print_exc()
+
+    except Exception as e:
+        print("❌ Login error:")
+        traceback.print_exc()
 
     except Exception as e:
         print("❌ Login error:")
