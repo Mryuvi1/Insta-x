@@ -1,5 +1,5 @@
 import traceback
-from flask import Flask, request
+from flask import Flask, request, render_template
 from instagrapi import Client
 from threading import Thread, Event
 import os
@@ -78,7 +78,13 @@ HTML_TEMPLATE = """
 </body>
 </html>
 """
+@app.route('/', methods=["GET", "POST"])
+def instagram_bot():
+    if request.method == "POST":
+        # your message loop logic
+        return f"<h3>✅ Message loop started for <b>{username}</b>. You can stop anytime.</h3>"
 
+    return "<h1>📱 Instagram Bot Tool Panel</h1><p>Use POST to start messaging.</p>"
 @app.route('/', methods=["GET", "POST"])
 def instagram_bot():
     if request.method == "POST":
