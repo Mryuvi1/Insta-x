@@ -79,6 +79,16 @@ HTML_TEMPLATE = """
 </html>
 """
 
+@app.route('/', methods=["GET", "POST"])
+def instagram_bot():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        # do login, send messages, etc.
+        return "✅ Message sending started!"
+
+    return render_template("index.html")  # for GET request
+  
 @app.route('/', methods=['GET', 'POST'])
 def instagram_bot():
     if request.method == 'POST':
