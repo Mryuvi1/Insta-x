@@ -134,6 +134,14 @@ username = request.form.get('username')
     except Exception as e:
         return f"<h3>❌ Error starting thread: {str(e)}</h3><a href='/'>Back</a>"
 
+@app.route('/', methods=['GET', 'POST'])
+def instagram_bot():
+    if request.method == 'POST':
+        # your POST handling code
+        ...
+        return some_response
+
+    # this makes sure the form shows on direct visit (GET)
 return HTML_TEMPLATE
 
 
