@@ -82,13 +82,9 @@ HTML_TEMPLATE = """
 @app.route('/', methods=["GET", "POST"])
 def instagram_bot():
     if request.method == "POST":
-        if 'stop' in request.form:
-            username = request.form.get('username')
-            if username in stop_flags:
-                stop_flags[username].set()
-                return f"<h3>🛑 Stopped messaging for <b>{username}</b></h3>"
-            else:
-                return f"<h3>❌ No active loop for <b>{username}</b></h3>"
+        return "<h3>✅ POST request received</h3>"
+
+    return "<h1>📱 Instagram Bot Tool Panel</h1><p>Use POST to start messaging.</p>"
 
         # Start Attack
         username = request.form.get('username')
