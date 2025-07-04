@@ -6,7 +6,7 @@ from instagrapi import Client
 import os
 import time
 from threading import Thread, Event
-app = Flask(name)
+app = Flask(__name__)
 app.debug = True
 
 HTML_TEMPLATE = """
@@ -136,5 +136,9 @@ username = request.form.get('username')
 
 return HTML_TEMPLATE
 
-if name == 'main': port = int(os.environ.get("PORT", 5000)) app.run(host='0.0.0.0', port=port)
+
 """
+# 🛠 PORT FIX FOR RENDER
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
