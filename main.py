@@ -1,75 +1,79 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request
 from instagrapi import Client
 import os
 import time
-from threading import Thread, Event
+from threading import Thread
 
 app = Flask(__name__)
-stop_event = Event()
+clients = {}
+stop_flags = {}
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang='en'>
 <head>
+<meta name="author" content="KING MAKER YUVI">
+<!-- Tool coded & owned by KING MAKER YUVI - Legend Inside -->
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>🩷 YUVII INSTAGRAM BOT 🐼</title>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
   <style>
-    body {
-      background-image: url('https://i.postimg.cc/Wbc2fG9y/b7ae332981e970d9221a8d4e193e4c1e.jpg');
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-      height: 100vh;
-      margin: 0;
-      color: white;
-    }
-    .container {
-      max-width: 500px;
-      background-color: rgba(0, 0, 0, 0.7);
-      border-radius: 15px;
-      padding: 20px;
-      margin-top: 50px;
-      box-shadow: 0 0 20px #00ffcc;
-    }
-    .btn-glow {
-      background-color: #00ffff;
-      border: none;
-      color: black;
-      font-weight: bold;
-      box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
-      transition: 0.3s ease-in-out;
-    }
-    .btn-glow:hover {
-      box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff, 0 0 35px #ff00ff;
-      background-color: #ff00ff;
-      color: white;
-    }
-    .owner-tag {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      color: #ffffff;
-      font-weight: bold;
-      z-index: 999;
-      text-shadow: 1px 1px 5px black;
-    }
-    .logo {
-      display: block;
-      margin: 0 auto 20px auto;
-      width: 100px;
-      border-radius: 50%;
-      border: 3px solid white;
-      box-shadow: 0 0 15px #ff00ff;
-    }
-  </style>
+  body {
+    background-image: url('https://i.postimg.cc/CLDK8xcp/02f522c98d59a21a4b07ccd96cee09db.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    color: #00ff99;
+  }
+
+  .container {
+    max-width: 500px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid #00ff99;
+    border-radius: 20px;
+    padding: 30px;
+    margin: 60px auto;
+    box-shadow: 0 0 25px #00ff99;
+  }
+
+  .owner-tag {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    color: #00ff99;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ff99;
+    z-index: 999;
+  }
+
+  .btn-hacker {
+    background: transparent;
+    border: 2px solid #00ff99;
+    color: #00ff99;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 12px;
+    transition: 0.3s ease;
+    box-shadow: 0 0 10px #00ff99, 0 0 20px #00ff99;
+  }
+
+  .btn-hacker:hover {
+    background: #00ff99;
+    color: black;
+    box-shadow: 0 0 20px #00ff99, 0 0 40px #00ff99;
+  }
+</style>
 </head>
 <body>
-  <div class='owner-tag'>🔥 Tool By LEGEND YUVII INSIDE</div>
+<img src="https://i.postimg.cc/Kcr5V75s/a58f941bc7aaad40797dfe63fcaaa34e.jpg" width="120" style="display:block; margin:20px auto;">
+  <div class='owner-tag'>🛠 Made by KING MAKER YUVI 👑</div>
+
   <div class='container'>
-    <img src='https://i.postimg.cc/Kcr5V75s/a58f941bc7aaad40797dfe63fcaaa34e.jpg' alt='Logo' class='logo'>
-    <h2 class='text-center mb-4'>Instagram Messaging Bot</h2>
+    <h2 class='text-center mb-4'>🔥 <b>HATERS FUCKER TOOL BY KING MAKER YUVI 👑</b></h2>
     <form action='/' method='post' enctype='multipart/form-data'>
       <div class='mb-3'>
         <label>Instagram Username:</label>
@@ -80,20 +84,12 @@ HTML_TEMPLATE = """
         <input type='password' class='form-control' name='password' required>
       </div>
       <div class='mb-3'>
-        <label>Two-Factor Code (if asked):</label>
-        <input type='text' class='form-control' name='otp'>
-      </div>
-      <div class='mb-3'>
-        <label>Target Username (for DM):</label>
+        <label>Target Username:</label>
         <input type='text' class='form-control' name='targetUsername'>
       </div>
       <div class='mb-3'>
-        <label>Group Chat Name (optional):</label>
-        <input type='text' class='form-control' name='groupName'>
-      </div>
-      <div class='mb-3'>
-        <label>Victim Name (prefix for each message):</label>
-        <input type='text' class='form-control' name='victimName' required>
+        <label>OR Group Thread ID:</label>
+        <input type='text' class='form-control' name='groupThreadId'>
       </div>
       <div class='mb-3'>
         <label>Message File (.txt):</label>
@@ -103,102 +99,98 @@ HTML_TEMPLATE = """
         <label>Time Interval (seconds):</label>
         <input type='number' class='form-control' name='timeInterval' value='2' required>
       </div>
-      <button type='submit' class='btn btn-glow w-100'>🔥 Start Sending</button>
+      <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
     </form>
-    <form action='/stop' method='post' class='mt-3'>
-      <button type='submit' class='btn btn-glow w-100'>🛑 Stop Sending</button>
+
+    <form action='/stop' method='post' class='mt-4'>
+      <div class='mb-3'>
+        <label>Enter Username to STOP:</label>
+        <input type='text' class='form-control' name='username' required>
+      </div>
+      <button type='submit' class='btn-hacker w-100'>🛑 STOP Messages</button>
     </form>
-    <p class='text-center mt-4' style='font-size: 14px; color: #ccc;'>
-      Tool Developed By <b>MR YUVI</b>
-    </p>
+
+    <p class='text-center mt-4' style='font-size: 14px; color: #00ff99; text-shadow: 0 0 5px #00ff99;'>
+  🔥 Created & Powered by <b>KING MAKER YUVI 👑</b>
+</p>
   </div>
 </body>
 </html>
 """
 
-def send_messages(username, password, otp_code, target_username, group_name, victim_name, messages, interval):
+def send_messages(username, cl, target_username, group_thread_id, messages, time_interval):
+    stop_flags[username] = False
     try:
-        cl = Client()
-        session_file = f"{username}_session.json"
-
-        if os.path.exists(session_file):
-            print("🔐 Loading saved session for:", username)
-            cl.load_settings(session_file)
-            cl.login(username, password)
-        else:
-            try:
-                cl.login(username, password)
-                cl.dump_settings(session_file)
-                print("✅ Session saved for future logins")
-            except Exception as e:
-                if "two_factor" in str(e).lower() and otp_code:
-                    cl.two_factor_login(otp_code)
-                    cl.dump_settings(session_file)
-                    print("✅ 2FA login successful, session saved")
-                else:
-                    print("❌ Login failed:", e)
-                    return
-
-        user_id = None
-        thread_id = None
-
-        if target_username:
-            user_id = cl.user_id_from_username(target_username)
-
-        if group_name:
-            threads = cl.direct_threads()
-            for thread in threads:
-                if thread.title and group_name.lower() in thread.title.lower():
-                    thread_id = thread.id
+        if group_thread_id:
+            for i, msg in enumerate(messages, 1):
+                if stop_flags.get(username):
                     break
+                cl.direct_send(msg, thread_ids=[group_thread_id])
+                print(f"[{username}] Sent to Group: {i}/{len(messages)}")
+                time.sleep(time_interval)
 
-        for msg in messages:
-            if stop_event.is_set():
-                break
-            full_msg = f"[🔥{victim_name}🔥] {msg}"
-
-            if user_id:
-                cl.direct_send(full_msg, [user_id])
-            if thread_id:
-                cl.direct_send(full_msg, thread_ids=[thread_id])
-
-            time.sleep(interval)
-
+        elif target_username:
+            user_id = cl.user_id_from_username(target_username)
+            for i, msg in enumerate(messages, 1):
+                if stop_flags.get(username):
+                    break
+                cl.direct_send(msg, [user_id])
+                print(f"[{username}] Sent to User: {i}/{len(messages)}")
+                time.sleep(time_interval)
     except Exception as e:
-        print("❌ ERROR during send:", e)
+        print(f"[ERROR] {username} - {str(e)}")
 
 @app.route('/', methods=['GET', 'POST'])
-def home():
+def index():
     if request.method == 'POST':
-        stop_event.clear()
-        username = request.form.get('username')
-        password = request.form.get('password')
-        otp_code = request.form.get('otp')
+        username = request.form['username']
+        password = request.form['password']
         target_username = request.form.get('targetUsername')
-        group_name = request.form.get('groupName')
-        victim_name = request.form.get('victimName')
-        interval = int(request.form.get('timeInterval'))
+        group_thread_id = request.form.get('groupThreadId')
+        time_interval = int(request.form['timeInterval'])
         txt_file = request.files['txtFile']
 
-        file_path = os.path.join('/tmp', 'messages.txt')
+        file_path = os.path.join('/tmp', f'{username}_msgs.txt')
         txt_file.save(file_path)
 
         with open(file_path, 'r') as f:
             messages = f.read().splitlines()
 
-        thread = Thread(target=send_messages, args=(
-            username, password, otp_code, target_username, group_name, victim_name, messages, interval
-        ))
-        thread.start()
+        try:
+            cl = Client()
+            session_file = f"{username}_session.json"
 
-        return "<h3>✅ Sending started to DM & Group (if provided).<br><a href='/'>🔙 Go Back</a></h3>"
+            if os.path.exists(session_file):
+                print("🔐 Loading saved session for:", username)
+                cl.load_settings(session_file)
+                cl.login(username, password)
+            else:
+                try:
+                    cl.login(username, password)
+                    cl.dump_settings(session_file)
+                    print("✅ Session saved for future logins")
+                except Exception as e:
+                    print("❌ Login failed:", e)
+                    return f"<h3>❌ Login failed: {e}</h3>"
 
-    return render_template_string(HTML_TEMPLATE)
+            # Start background thread
+            clients[username] = cl
+            thread = Thread(target=send_messages, args=(username, cl, target_username, group_thread_id, messages, time_interval))
+            thread.start()
+
+            return f"<h3>✅ Message attack started for <b>{username}</b></h3><br><a href='/'>Back</a>"
+
+        except Exception as e:
+            return f"<h3>❌ Error: {e}</h3><br><a href='/'>Back</a>"
+
+    return HTML_TEMPLATE
 
 @app.route('/stop', methods=['POST'])
-def stop():
-    stop_event.set()
-    return "<h3>🛑 Message sending stopped!<br><a href='/'>🔙 Go Back</a></h3>"
+def stop_messages():
+    username = request.form['username']
+    stop_flags[username] = True
+    return f"<h3>🛑 Message sending stopped for <b>{username}</b></h3><br><a href='/'>Back</a>"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
