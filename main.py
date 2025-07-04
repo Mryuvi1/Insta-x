@@ -1,3 +1,5 @@
+import logging
+logging.basicConfig(level=logging.INFO)
 from flask import Flask, request
 from instagrapi import Client
 import os
@@ -155,27 +157,30 @@ def instagram_bot():
         stop_flags[username] = Event()
 
         def send_loop():
-            try:
-                cl = Client()
-                cl.login(username, password)
-                clients[username] = cl
+    cl = Client()
+    cl.login(username, password)
+    print(f"🔁 Logged in as: {username}")
 
-                while not stop_flags[username].is_set():
-                    for msg in messages:
-                        if stop_flags[username].is_set():
-                            break
-                        try:
-                            if group_thread_id:
-                                cl.direct_send(msg, thread_ids=[group_thread_id])
-                            elif target_username:
-                                user_id = cl.user_id_from_username(target_username)
-                                cl.direct_send(msg, user_ids=[user_id])
-                            print(f"✅ Sent: {msg}")
-                            time.sleep(time_interval)
-                        except Exception as e:
-                            print(f"⚠️ Error sending message: {e}")
+    while not stop_events[username].is_set():
+        for msg in messages:
+            if stop_events[username].is_set():
+                break
+            try:
+                print(f"📨 Preparing to send: {msg}")
+
+                if group_thread_id:
+                    print(f"🎯 Sending to group thread ID: {group_thread_id}")
+                    cl.direct_send(msg, thread_ids=[group_thread_id])
+
+                elif target_username:
+                    print(f"🎯 Target Username: {target_username}")
+                    user_id = cl.user_id_from_username(target_username)
+                    print(f"📬 Resolved User ID: {user_id}")
+                    print("🚀 Sending message now...")
+                    cl.direct_send(msg, [user_id])
+
             except Exception as e:
-                print(f"❌ Login/send error: {e}")
+                print(f"❌ Error occurred: {e}")
 
         try:
             Thread(target=send_loop).start()
