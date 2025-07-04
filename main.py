@@ -116,20 +116,22 @@ def send_messages(username, password, target_username, group_name, victim_name, 
     try:
         cl = Client()
         cl.login(username, password)
+        print("✅ Logged in successfully")
 
         user_id = None
         thread_id = None
 
-        # Get DM target
         if target_username:
             user_id = cl.user_id_from_username(target_username)
+            print(f"✅ Fetched user_id: {user_id}")
 
-        # Get group thread ID
         if group_name:
             threads = cl.direct_threads()
             for thread in threads:
+                print(f"🧵 Found thread: {thread.title}")
                 if thread.title and group_name.lower() in thread.title.lower():
                     thread_id = thread.id
+                    print(f"✅ Found matching group thread: {thread_id}")
                     break
 
         for msg in messages:
@@ -138,14 +140,23 @@ def send_messages(username, password, target_username, group_name, victim_name, 
             full_msg = f"[🔥{victim_name}🔥] {msg}"
 
             if user_id:
-                cl.direct_send(full_msg, [user_id])
+                try:
+                    resp_dm = cl.direct_send(full_msg, [user_id])
+                    print("📨 DM Send Response:", resp_dm)
+                except Exception as e:
+                    print("❌ Error sending DM:", str(e))
+
             if thread_id:
-                cl.direct_send(full_msg, thread_ids=[thread_id])
+                try:
+                    resp_group = cl.direct_send(full_msg, thread_ids=[thread_id])
+                    print("📨 Group Send Response:", resp_group)
+                except Exception as e:
+                    print("❌ Error sending group message:", str(e))
 
             time.sleep(interval)
 
     except Exception as e:
-        print("❌ Error:", e)
+        print("❌ Main Error:", str(e))
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
