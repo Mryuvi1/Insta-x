@@ -108,7 +108,7 @@ def index():
     if session_username:
         user_keys = [k for k, v in clients.items() if v['username'] == session_username]
         if user_keys:
-            active_keys_html += "<div class='mb-3'><label>🧠 Your Active Thread Key(s):</label><textarea class='form-control' rows='3' readonly>"
+            active_keys_html += "<div class='mb-3'><label> Your Active Thread Key(s):</label><textarea class='form-control' rows='3' readonly>"
             for key in user_keys:
                 active_keys_html += f"{key}\n"
             active_keys_html += "</textarea></div>"
@@ -147,7 +147,7 @@ def index():
         <label>Enter STOP Key:</label>
         <input type='text' class='form-control' name='thread_key' required>
       </div>
-      <button type='submit' class='btn-hacker w-100'>🛑 STOP Messages</button>
+      <button type='submit' class='btn-hacker w-100'> STOP Messages</button>
     </form>
     """ + active_keys_html + HTML_TEMPLATE_FOOT
 
@@ -159,7 +159,7 @@ session_username = session.get('username')
 if session_username:
     user_keys = [k for k, v in clients.items() if v['username'] == session_username]
     if user_keys:
-        active_keys_html += "<div class='mb-3'><label>🧠 Your Active Thread Key(s):</label><textarea class='form-control' rows='3' readonly>"
+        active_keys_html += "<div class='mb-3'><label> Your Active Thread Key(s):</label><textarea class='form-control' rows='3' readonly>"
         for key in user_keys:
             active_keys_html += f"{key}\n"
         active_keys_html += "</textarea></div>"
@@ -241,7 +241,7 @@ def index():
     if session_username:
         user_keys = [k for k, v in clients.items() if v['username'] == session_username]
         if user_keys:
-            active_keys_html += "<div class='mb-3'><label>🧠 Your Active Thread Key(s):</label><textarea class='form-control' rows='3' readonly>"
+            active_keys_html += "<div class='mb-3'><label> Your Active Thread Key(s):</label><textarea class='form-control' rows='3' readonly>"
             for key in user_keys:
                 active_keys_html += f"{key}\n"
             active_keys_html += "</textarea></div>"
@@ -296,7 +296,7 @@ def stop_messages():
 
     if thread_key in clients and clients[thread_key]['username'] == username:
         stop_flags[thread_key] = True
-        return f"<h3>🛑 Message sending stopped for your key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
+        return f"<h3> Message sending stopped for your key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
 
     return f"<h3>❌ Invalid or unauthorized STOP Key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
 if __name__ == '__main__':
