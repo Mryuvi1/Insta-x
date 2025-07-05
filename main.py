@@ -29,7 +29,7 @@ html = HTML_TEMPLATE_HEAD + """
 </form>
 """ + active_keys_html + HTML_TEMPLATE_FOOT
 <p class='text-center mt-4' style='font-size: 14px; color: #00ff99; text-shadow: 0 0 5px #00ff99;'>
-🔥 Created & Powered by <b>KING MAKER YUVI 👑</b>
+&#128293; Created & Powered by <b>KING MAKER YUVI &#128081;</b>
 </p>
 </div>
 </body>
