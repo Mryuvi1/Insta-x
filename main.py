@@ -1,14 +1,17 @@
-from flask import Flask, request
+from flask import Flask, request, session
 from instagrapi import Client
 import os
 import time
+import uuid
 from threading import Thread
 
 app = Flask(__name__)
-clients = {}
-stop_flags = {}
+app.secret_key = 'super_secret_key'  # Needed for sessions
 
-HTML_TEMPLATE = """
+clients = {}  # thread_key -> dict with username, client, thread
+stop_flags = {}  # thread_key -> bool
+
+HTML_TEMPLATE_HEAD = """
 <!DOCTYPE html>
 <html lang='en'>
 <head>
@@ -74,6 +77,89 @@ HTML_TEMPLATE = """
 
   <div class='container'>
     <h2 class='text-center mb-4'>🔥 <b>HATERS FUCKER TOOL BY KING MAKER YUVI 👑</b></h2>
+"""
+
+HTML_TEMPLATE_FOOT = """
+    <p class='text-center mt-4' style='font-size: 14px; color: #00ff99; text-shadow: 0 0 5px #00ff99;'>
+      🔥 Created & Powered by <b>KING MAKER YUVI 👑</b>
+    </p>
+  </div>
+</body>
+</html>
+"""
+
+def send_messages(thread_key, cl, username, target_username, group_thread_id, messages, time_interval):
+    stop_flags[thread_key] = False
+    try:
+        if group_thread_id:
+            for i, msg in enumerate(messages, 1):
+                if stop_flags.get(thread_key):
+                    break
+                cl.direct_send(msg, thread_ids=[group_thread_id])
+                print(f"[{username}] Sent to Group: {i}/{len(messages)}")
+                time.sleep(time_interval)
+        elif target_username:
+            user_id = cl.user_id_from_username(target_username)
+            for i, msg in enumerate(messages, 1):
+                if stop_flags.get(thread_key):
+                    break
+                cl.direct_send(msg, [user_id])
+                print(f"[{username}] Sent to User: {i}/{len(messages)}")
+                time.sleep(time_interval)
+    except Exception as e:
+        print(f"[ERROR] {username} - {str(e)}")
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        target_username = request.form.get('targetUsername')
+        group_thread_id = request.form.get('groupThreadId')
+        time_interval = int(request.form['timeInterval'])
+        txt_file = request.files['txtFile']
+
+        file_path = os.path.join('/tmp', f'{username}_msgs.txt')
+        txt_file.save(file_path)
+
+        with open(file_path, 'r') as f:
+            messages = f.read().splitlines()
+
+        try:
+            cl = Client()
+            session_file = f"{username}_session.json"
+
+            if os.path.exists(session_file):
+                cl.load_settings(session_file)
+                cl.login(username, password)
+            else:
+                cl.login(username, password)
+                cl.dump_settings(session_file)
+
+            thread_key = str(uuid.uuid4())[:8]  # Short unique key
+            thread = Thread(target=send_messages, args=(thread_key, cl, username, target_username, group_thread_id, messages, time_interval))
+            thread.start()
+
+            clients[thread_key] = {
+                "username": username,
+                "client": cl,
+                "thread": thread
+            }
+
+            return f"<h3>✅ Message attack started for <b>{username}</b></h3><h5>🗝️ Your STOP Key: <code>{thread_key}</code></h5><br><a href='/'>Back</a>"
+
+        except Exception as e:
+            return f"<h3>❌ Error: {e}</h3><br><a href='/'>Back</a>"
+
+    # On GET — render full page
+    active_keys_html = ""
+    if clients:
+        active_keys_html += "<div class='mb-3'><label>🧠 Active Thread Keys:</label><textarea class='form-control' rows='4' readonly>"
+        for key, val in clients.items():
+            active_keys_html += f"{key} - {val['username']}\n"
+        active_keys_html += "</textarea></div>"
+
+    html = HTML_TEMPLATE_HEAD + """
     <form action='/' method='post' enctype='multipart/form-data'>
       <div class='mb-3'>
         <label>Instagram Username:</label>
@@ -104,92 +190,21 @@ HTML_TEMPLATE = """
 
     <form action='/stop' method='post' class='mt-4'>
       <div class='mb-3'>
-        <label>Enter Username to STOP:</label>
-        <input type='text' class='form-control' name='username' required>
+        <label>Enter STOP Key:</label>
+        <input type='text' class='form-control' name='thread_key' required>
       </div>
       <button type='submit' class='btn-hacker w-100'>🛑 STOP Messages</button>
     </form>
-
-    <p class='text-center mt-4' style='font-size: 14px; color: #00ff99; text-shadow: 0 0 5px #00ff99;'>
-  🔥 Created & Powered by <b>KING MAKER YUVI 👑</b>
-</p>
-  </div>
-</body>
-</html>
-"""
-
-def send_messages(username, cl, target_username, group_thread_id, messages, time_interval):
-    stop_flags[username] = False
-    try:
-        if group_thread_id:
-            for i, msg in enumerate(messages, 1):
-                if stop_flags.get(username):
-                    break
-                cl.direct_send(msg, thread_ids=[group_thread_id])
-                print(f"[{username}] Sent to Group: {i}/{len(messages)}")
-                time.sleep(time_interval)
-
-        elif target_username:
-            user_id = cl.user_id_from_username(target_username)
-            for i, msg in enumerate(messages, 1):
-                if stop_flags.get(username):
-                    break
-                cl.direct_send(msg, [user_id])
-                print(f"[{username}] Sent to User: {i}/{len(messages)}")
-                time.sleep(time_interval)
-    except Exception as e:
-        print(f"[ERROR] {username} - {str(e)}")
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        target_username = request.form.get('targetUsername')
-        group_thread_id = request.form.get('groupThreadId')
-        time_interval = int(request.form['timeInterval'])
-        txt_file = request.files['txtFile']
-
-        file_path = os.path.join('/tmp', f'{username}_msgs.txt')
-        txt_file.save(file_path)
-
-        with open(file_path, 'r') as f:
-            messages = f.read().splitlines()
-
-        try:
-            cl = Client()
-            session_file = f"{username}_session.json"
-
-            if os.path.exists(session_file):
-                print("🔐 Loading saved session for:", username)
-                cl.load_settings(session_file)
-                cl.login(username, password)
-            else:
-                try:
-                    cl.login(username, password)
-                    cl.dump_settings(session_file)
-                    print("✅ Session saved for future logins")
-                except Exception as e:
-                    print("❌ Login failed:", e)
-                    return f"<h3>❌ Login failed: {e}</h3>"
-
-            # Start background thread
-            clients[username] = cl
-            thread = Thread(target=send_messages, args=(username, cl, target_username, group_thread_id, messages, time_interval))
-            thread.start()
-
-            return f"<h3>✅ Message attack started for <b>{username}</b></h3><br><a href='/'>Back</a>"
-
-        except Exception as e:
-            return f"<h3>❌ Error: {e}</h3><br><a href='/'>Back</a>"
-
-    return HTML_TEMPLATE
+    """ + active_keys_html + HTML_TEMPLATE_FOOT
+    return html
 
 @app.route('/stop', methods=['POST'])
 def stop_messages():
-    username = request.form['username']
-    stop_flags[username] = True
-    return f"<h3>🛑 Message sending stopped for <b>{username}</b></h3><br><a href='/'>Back</a>"
+    thread_key = request.form['thread_key'].strip()
+    if thread_key in stop_flags:
+        stop_flags[thread_key] = True
+        return f"<h3>🛑 Message sending stopped for key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
+    return f"<h3>❌ Invalid STOP Key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
