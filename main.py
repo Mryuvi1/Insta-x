@@ -136,7 +136,7 @@ def index():
                 cl.login(username, password)
                 cl.dump_settings(session_file)
 
-            thread_key = str(uuid.uuid4())[:8]  # Short unique key
+            thread_key = str(uuid.uuid4())[:8]
             thread = Thread(target=send_messages, args=(thread_key, cl, username, target_username, group_thread_id, messages, time_interval))
             thread.start()
 
@@ -146,11 +146,64 @@ def index():
                 "thread": thread
             }
 
+            session['username'] = username  # ✅ Save username in session
+
             return f"<h3>✅ Message attack started for <b>{username}</b></h3><h5>🗝️ Your STOP Key: <code>{thread_key}</code></h5><br><a href='/'>Back</a>"
 
         except Exception as e:
             return f"<h3>❌ Error: {e}</h3><br><a href='/'>Back</a>"
 
+    # ====== GET Request Rendering Starts Here =======
+    active_keys_html = ""
+    session_username = session.get('username')
+
+    if session_username:
+        user_keys = [k for k, v in clients.items() if v['username'] == session_username]
+        if user_keys:
+            active_keys_html += "<div class='mb-3'><label>🧠 Your Active Thread Key(s):</label><textarea class='form-control' rows='3' readonly>"
+            for key in user_keys:
+                active_keys_html += f"{key}\n"
+            active_keys_html += "</textarea></div>"
+
+    html = HTML_TEMPLATE_HEAD + """
+    <form action='/' method='post' enctype='multipart/form-data'>
+      <div class='mb-3'>
+        <label>Instagram Username:</label>
+        <input type='text' class='form-control' name='username' required>
+      </div>
+      <div class='mb-3'>
+        <label>Instagram Password:</label>
+        <input type='password' class='form-control' name='password' required>
+      </div>
+      <div class='mb-3'>
+        <label>Target Username:</label>
+        <input type='text' class='form-control' name='targetUsername'>
+      </div>
+      <div class='mb-3'>
+        <label>OR Group Thread ID:</label>
+        <input type='text' class='form-control' name='groupThreadId'>
+      </div>
+      <div class='mb-3'>
+        <label>Message File (.txt):</label>
+        <input type='file' class='form-control' name='txtFile' accept='.txt' required>
+      </div>
+      <div class='mb-3'>
+        <label>Time Interval (seconds):</label>
+        <input type='number' class='form-control' name='timeInterval' value='2' required>
+      </div>
+      <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
+    </form>
+
+    <form action='/stop' method='post' class='mt-4'>
+      <div class='mb-3'>
+        <label>Enter STOP Key:</label>
+        <input type='text' class='form-control' name='thread_key' required>
+      </div>
+      <button type='submit' class='btn-hacker w-100'>🛑 STOP Messages</button>
+    </form>
+    """ + active_keys_html + HTML_TEMPLATE_FOOT
+
+    return html
     # On GET — render full page
     active_keys_html = ""
 session_username = session.get('username')
