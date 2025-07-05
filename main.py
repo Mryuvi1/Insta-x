@@ -153,10 +153,14 @@ def index():
 
     # On GET — render full page
     active_keys_html = ""
-    if clients:
-        active_keys_html += "<div class='mb-3'><label>🧠 Active Thread Keys:</label><textarea class='form-control' rows='4' readonly>"
-        for key, val in clients.items():
-            active_keys_html += f"{key} - {val['username']}\n"
+session_username = session.get('username')
+
+if session_username:
+    user_keys = [k for k, v in clients.items() if v['username'] == session_username]
+    if user_keys:
+        active_keys_html += "<div class='mb-3'><label>🧠 Your Active Thread Key(s):</label><textarea class='form-control' rows='3' readonly>"
+        for key in user_keys:
+            active_keys_html += f"{key}\n"
         active_keys_html += "</textarea></div>"
 
     html = HTML_TEMPLATE_HEAD + """
@@ -201,11 +205,13 @@ def index():
 @app.route('/stop', methods=['POST'])
 def stop_messages():
     thread_key = request.form['thread_key'].strip()
-    if thread_key in stop_flags:
-        stop_flags[thread_key] = True
-        return f"<h3>🛑 Message sending stopped for key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
-    return f"<h3>❌ Invalid STOP Key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
+    username = session.get('username')
 
+    if thread_key in clients and clients[thread_key]['username'] == username:
+        stop_flags[thread_key] = True
+        return f"<h3>🛑 Message sending stopped for your key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
+
+    return f"<h3>❌ Invalid or unauthorized STOP Key: <code>{thread_key}</code></h3><br><a href='/'>Back</a>"
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
