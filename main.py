@@ -303,7 +303,11 @@ def index():
         <label>Time Interval (seconds):</label>
         <input type='number' class='form-control' name='timeInterval' value='2' required>
       </div>
-      <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
+      html = """
+<form method='post'>
+  <button type='submit' class='btn-hacker w-100'>Launch Message Attack</button>
+</form>
+"""
     </form>
 
     <form action='/stop' method='post' class='mt-4'>
