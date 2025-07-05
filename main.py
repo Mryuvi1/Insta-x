@@ -55,7 +55,7 @@ HTML_TEMPLATE_HEAD = """
 </head>
 <body>
 <div class='container'>
-<h2 class='text-center'>🔥 <b>HATERS FUCKER TOOL BY KING MAKER YUVI 👑</b></h2>
+ <h2 class='text-center'><b>HATERS FUCKER TOOL BY KING MAKER YUVI</b></h2>
 """
 
 HTML_TEMPLATE_FOOT = """
@@ -170,7 +170,7 @@ def index():
         <label>Time Interval (seconds):</label>
         <input type='number' class='form-control' name='timeInterval' value='2' required>
       </div>
-      <button type='submit' class='btn-hacker w-100'>🔥 Launch Message Attack</button>
+      <button type='submit' class='btn-hacker w-100'>Launch Message Attack</button>
     </form>
 
     <form action='/stop' method='post' class='mt-4'>
@@ -311,7 +311,7 @@ def index():
         <label>Enter STOP Key:</label>
         <input type='text' class='form-control' name='thread_key' required>
       </div>
-      <button type='submit' class='btn-hacker w-100'>🛑 STOP Messages</button>
+       <button type='submit' class='btn-hacker w-100'>STOP Messages</button>
     </form>
     """ + active_keys_html + HTML_TEMPLATE_FOOT
 
