@@ -146,14 +146,14 @@ def index():
                 "thread": thread
             }
 
-            session['username'] = username  # ✅ Save username in session
+            session['username'] = username  # Save session
 
             return f"<h3>✅ Message attack started for <b>{username}</b></h3><h5>🗝️ Your STOP Key: <code>{thread_key}</code></h5><br><a href='/'>Back</a>"
 
         except Exception as e:
             return f"<h3>❌ Error: {e}</h3><br><a href='/'>Back</a>"
 
-    # ====== GET Request Rendering Starts Here =======
+    # ------- Handle GET request below --------
     active_keys_html = ""
     session_username = session.get('username')
 
