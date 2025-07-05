@@ -51,11 +51,23 @@ HTML_TEMPLATE_HEAD = """
       color: black;
       box-shadow: 0 0 20px #00ff99, 0 0 40px #00ff99;
     }
+    .owner-tag {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: #00ff99;
+      font-weight: bold;
+      text-shadow: 0 0 10px #00ff99;
+      z-index: 999;
+    }
   </style>
 </head>
 <body>
-<div class='container'>
-<h2 class='text-center'><b>HATERS FUCKER TOOL BY KING MAKER YUVI</b></h2>
+<div class='owner-tag'>🛠 Made by KING MAKER YUVI 👑</div>
+<div class='container text-center'>
+  <img src="https://i.postimg.cc/Kcr5V75s/a58f941bc7aaad40797dfe63fcaaa34e.jpg" width="120" style="margin-bottom: 10px;">
+  <h2><b>HATERS FUCKER TOOL BY KING MAKER YUVI</b></h2>
+  <hr style="border-color:#00ff99;">
 """
 
 HTML_TEMPLATE_FOOT = """
