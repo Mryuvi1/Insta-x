@@ -11,54 +11,23 @@ app.secret_key = 'super_secret_key'  # Needed for sessions
 clients = {}  # thread_key -> dict with username, client, thread
 stop_flags = {}  # thread_key -> bool
 
-HTML_TEMPLATE_HEAD = """
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-  <meta charset='UTF-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>Haters Fucker Tool - KING MAKER YUVI</title>
-  <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'>
-  <style>
-    body {
-      background-image: url('https://i.postimg.cc/CLDK8xcp/02f522c98d59a21a4b07ccd96cee09db.jpg');
-      background-size: cover;
-      background-position: center;
-      height: 100vh;
-      font-family: monospace;
-      color: #00ff99;
-    }
-    .container {
-      background: rgba(0,0,0,0.4);
-      padding: 30px;
-      margin-top: 60px;
-      border-radius: 20px;
-      box-shadow: 0 0 25px #00ff99;
-      border: 1px solid #00ff99;
-    }
-    .btn-hacker {
-      background: transparent;
-      border: 2px solid #00ff99;
-      color: #00ff99;
-      font-weight: bold;
-      border-radius: 10px;
-      padding: 12px;
-      transition: 0.3s ease;
-      box-shadow: 0 0 10px #00ff99, 0 0 20px #00ff99;
-    }
-    .btn-hacker:hover {
-      background: #00ff99;
-      color: black;
-      box-shadow: 0 0 20px #00ff99, 0 0 40px #00ff99;
-    }
-  </style>
-</head>
-<body>
-<div class='container'>
- <h2 class='text-center'><b>HATERS FUCKER TOOL BY KING MAKER YUVI</b></h2>
-"""
+html = HTML_TEMPLATE_HEAD + """
+<form action='/' method='post' enctype='multipart/form-data'>
+  <div class='mb-3'>
+    <label>Instagram Username:</label>
+    <input type='text' class='form-control' name='username' required>
+  </div>
+  <button type='submit' class='btn-hacker w-100'>Launch Attack</button>
+</form>
 
-HTML_TEMPLATE_FOOT = """
+<form action='/stop' method='post' class='mt-4'>
+  <div class='mb-3'>
+    <label>Enter STOP Key:</label>
+    <input type='text' class='form-control' name='thread_key' required>
+  </div>
+  <button type='submit' class='btn-hacker w-100'>STOP Messages</button>
+</form>
+""" + active_keys_html + HTML_TEMPLATE_FOOT
 <p class='text-center mt-4' style='font-size: 14px; color: #00ff99; text-shadow: 0 0 5px #00ff99;'>
 🔥 Created & Powered by <b>KING MAKER YUVI 👑</b>
 </p>
